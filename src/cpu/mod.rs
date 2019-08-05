@@ -90,93 +90,200 @@ impl OpCode for Nop {
     fn execute(&self, _: &mut Cpu) {}
 }
 
-pub struct LDAImm {
-    imm: u8,
-}
-
-impl OpCode for LDAImm {
-    fn new() -> LDAImm {
-        LDAImm { imm: 0 }
-    }
-
-    fn decode(&mut self, cpu: &mut Cpu) -> bool {
-        self.imm = cpu.read_from_pc();
+macro_rules! decode_load_imm {
+    ($opcode:ident, $cpu:ident) =>
+    {{
+        $opcode.imm = $cpu.read_from_pc();
         true
-    }
-
-    fn execute(&self, cpu: &mut Cpu) {
-        cpu.a = self.imm;
-        cpu.flags.zero = cpu.a == 0;
-        cpu.flags.negative = (cpu.a & 0x80) != 0;
-    }
+    }};
 }
 
-pub struct LDAZeroPage {
-    addr: u8,
-    imm: u8,
-    state: usize,
+macro_rules! execute_imm {
+    ($reg:ident, $opcode:ident, $cpu:ident) =>
+    {{
+        let imm = $opcode.imm;
+        $cpu.$reg = imm;
+        $cpu.flags.zero = imm == 0;
+        $cpu.flags.negative = (imm & (0x80 as u8)) != 0 
+    }};
 }
 
-impl OpCode for LDAZeroPage {
-    fn new() -> LDAZeroPage {
-        LDAZeroPage {
-            addr: 0,
-            imm: 0,
-            state: 0
+macro_rules! declare_load_imm {
+    ($name:ident, $reg:ident) => {
+        pub struct $name {
+            imm: u8,
+        }
+
+        impl OpCode for $name {
+            fn new() -> $name {
+                $name { imm: 0 }
+            }
+
+            fn decode(&mut self, cpu: &mut Cpu) -> bool {
+                decode_load_imm!(self, cpu)
+            }
+
+            fn execute(&self, cpu: &mut Cpu) {
+                execute_imm!($reg, self, cpu)
+            }
         }
     }
+}
 
-    fn decode(&mut self, cpu: &mut Cpu) -> bool {
-        if self.state == 0 {
+declare_load_imm!(LDAImm, a);
+declare_load_imm!(LDXImm, x);
+declare_load_imm!(LDYImm, y);
+
+macro_rules! decode_load_zero_page {
+    ($opcode:ident, $cpu:ident) =>
+    {{
+        if $opcode.state == 0 {
             // read offset from memory
-            self.addr = cpu.read_from_pc();
-            self.state = self.state + 1;
+            $opcode.addr = $cpu.read_from_pc();
+            $opcode.state = 1;
             false
         } else {
             // read data from memory using offset in page 0
-            self.imm = cpu.mem[self.addr as usize];
+            $opcode.imm = $cpu.mem[$opcode.addr as usize];
             true
         }
-    }
-
-    fn execute(&self, cpu: &mut Cpu) {
-        cpu.a = self.imm;
-        cpu.flags.zero = cpu.a == 0;
-        cpu.flags.negative = (cpu.a & 0x80) != 0;
-    }
+    }};
 }
 
-pub struct LDAZeroPageX {
-    addr: u8,
-    imm: u8,
-    state: usize,
-}
+macro_rules! declare_load_zero_page {
+    ($name:ident, $reg:ident) => {
+        pub struct $name {
+            addr: u8,
+            imm: u8,
+            state: usize
+        }
 
-impl OpCode for LDAZeroPageX {
-    fn new() -> LDAZeroPageX {
-        LDAZeroPage {
-            addr: 0,
-            imm: 0,
-            state: 0
+        impl OpCode for $name {
+            fn new() -> $name {
+                $name {
+                    addr: 0,
+                    imm: 0,
+                    state: 0
+                }
+            }
+
+            fn decode(&mut self, cpu: &mut Cpu) -> bool {
+                decode_load_zero_page!(self, cpu)
+            }
+
+            fn execute(&self, cpu: &mut Cpu) {
+                execute_imm!($reg, self, cpu)
+            }
         }
     }
+}
 
-    fn decode(&mut self, cpu: &mut Cpu) -> bool {
-        if self.state == 0 {
+declare_load_zero_page!(LDAZeroPage, a);
+declare_load_zero_page!(LDXZeroPage, x);
+declare_load_zero_page!(LDYZeroPage, y);
+
+macro_rules! decode_load_zero_page_reg {
+    ($opcode:ident, $cpu:ident, $base:ident) =>
+    {{
+        if $opcode.state == 0 {
             // read offset from memory
-            self.addr = cpu.read_from_pc();
-            self.state = self.state + 1;
+            $opcode.addr = $cpu.read_from_pc();
+            $opcode.state = 1;
+            false
+        } else if $opcode.state == 1 {
+            // compute final offset. Wrapping on page 0
+            $opcode.addr = $opcode.addr.overflowing_add($cpu.$base).0;
+            $opcode.state = 2;
             false
         } else {
-            // read data from memory using offset in page 0
-            self.imm = cpu.mem[self.addr as usize];
+            // read data from memory using offset
+            $opcode.imm = $cpu.mem[$opcode.addr as usize];
             true
         }
-    }
+    }};
+}
 
-    fn execute(&self, cpu: &mut Cpu) {
-        cpu.a = self.imm;
-        cpu.flags.zero = cpu.a == 0;
-        cpu.flags.negative = (cpu.a & 0x80) != 0;
+macro_rules! declare_load_zero_page_reg {
+    ($name:ident, $reg:ident, $base:ident) => {
+        pub struct $name {
+            addr: u8,
+            imm: u8,
+            state: usize
+        }
+
+        impl OpCode for $name {
+            fn new() -> $name {
+                $name {
+                    addr: 0,
+                    imm: 0,
+                    state: 0
+                }
+            }
+
+            fn decode(&mut self, cpu: &mut Cpu) -> bool {
+                decode_load_zero_page_reg!(self, cpu, $base)
+            }
+
+            fn execute(&self, cpu: &mut Cpu) {
+                execute_imm!($reg, self, cpu)
+            }
+        }
     }
 }
+
+declare_load_zero_page_reg!(LDAZeroPageX, a, x);
+declare_load_zero_page_reg!(LDYZeroPageX, y, x);
+declare_load_zero_page_reg!(LDXZeroPageY, x, y);
+
+macro_rules! decode_load_abs {
+    ($opcode:ident, $cpu:ident) =>
+    {{
+        if $opcode.state == 0 {
+            $opcode.low = $cpu.read_from_pc();
+            $opcode.state = 1;
+            false
+        } else if $opcode.state == 1 {
+            $opcode.high = $cpu.read_from_pc();
+            $opcode.state = 2;
+            false
+        } else {
+            let addr : u16 = (($opcode.high as u16) << 8) | ($opcode.low as u16);
+            $opcode.imm = $cpu.mem[addr as usize];
+            true
+        }
+    }};
+}
+
+macro_rules! declare_load_abs {
+    ($name:ident, $reg:ident) => {
+        pub struct $name {
+            low: u8,
+            high: u8,
+            imm: u8,
+            state: usize
+        }
+
+        impl OpCode for $name {
+            fn new() -> $name {
+                $name {
+                    low: 0,
+                    high: 0,
+                    imm: 0,
+                    state: 0
+                }
+            }
+
+            fn decode(&mut self, cpu: &mut Cpu) -> bool {
+                decode_load_abs!(self, cpu)
+            }
+
+            fn execute(&self, cpu: &mut Cpu) {
+                execute_imm!($reg, self, cpu)
+            }
+        }
+    }
+}
+
+declare_load_abs!(LDAAbs, a);
+declare_load_abs!(LDXAbs, x);
+declare_load_abs!(LDYAbs, y);
