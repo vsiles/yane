@@ -235,6 +235,12 @@ declare_load_zero_page_reg!(LDAZeroPageX, a, x);
 declare_load_zero_page_reg!(LDYZeroPageX, y, x);
 declare_load_zero_page_reg!(LDXZeroPageY, x, y);
 
+macro_rules! mk_addr {
+    ($low:expr, $high:expr) => {
+        (($high as u16) << 8) | ($low as u16)
+    };
+}
+
 macro_rules! decode_load_abs {
     ($opcode:ident, $cpu:ident) =>
     {{
@@ -247,7 +253,7 @@ macro_rules! decode_load_abs {
             $opcode.state = 2;
             false
         } else {
-            let addr : u16 = (($opcode.high as u16) << 8) | ($opcode.low as u16);
+            let addr : u16 = mk_addr!($opcode.low, $opcode.high);
             $opcode.imm = $cpu.mem[addr as usize];
             true
         }
@@ -287,3 +293,78 @@ macro_rules! declare_load_abs {
 declare_load_abs!(LDAAbs, a);
 declare_load_abs!(LDXAbs, x);
 declare_load_abs!(LDYAbs, y);
+
+macro_rules! decode_load_abs_reg {
+    ($opcode:ident, $cpu:ident, $base:ident) =>
+    {{
+        if $opcode.state == 0 {
+            $opcode.low = $cpu.read_from_pc();
+            println!("DEBUG LOW {:02x}", $opcode.low);
+            $opcode.state = 1;
+            false
+        } else if $opcode.state == 1 {
+            $opcode.high = $cpu.read_from_pc();
+            println!("DEBUG HIGH {:02x}", $opcode.high);
+            let (low, carry) = $opcode.low.overflowing_add($cpu.$base);
+            println!("DEBUG TEMP LOW {:02x} CARRY {}", low, carry);
+            $opcode.low = low;
+            $opcode.carry = carry;
+            $opcode.state = 2;
+            false
+        } else if $opcode.state == 2 {
+            let addr : u16 = mk_addr!($opcode.low, $opcode.high);
+            println!("DEBUG ADDR: {:#04x}", addr);
+            $opcode.imm = $cpu.mem[addr as usize];
+            if $opcode.carry {
+                println!("DEBUG OOPS");
+                $opcode.high = $opcode.high + 1;
+                $opcode.state = 3;
+                false
+            } else {
+                true
+            }
+        } else {
+            let addr : u16 = mk_addr!($opcode.low, $opcode.high);
+            println!("DEBUG ADDR: {:#04x}", addr);
+            $opcode.imm = $cpu.mem[addr as usize];
+            true
+        }
+    }};
+}
+
+macro_rules! declare_load_abs_reg {
+    ($name:ident, $reg:ident, $base: ident) => {
+        pub struct $name {
+            low: u8,
+            high: u8,
+            carry: bool,
+            imm: u8,
+            state: usize
+        }
+
+        impl OpCode for $name {
+            fn new() -> $name {
+                $name {
+                    low: 0,
+                    high: 0,
+                    carry: false,
+                    imm: 0,
+                    state: 0
+                }
+            }
+
+            fn decode(&mut self, cpu: &mut Cpu) -> bool {
+                decode_load_abs_reg!(self, cpu, $base)
+            }
+
+            fn execute(&self, cpu: &mut Cpu) {
+                execute_imm!($reg, self, cpu)
+            }
+        }
+    }
+}
+
+declare_load_abs_reg!(LDAAbsX, a, x);
+declare_load_abs_reg!(LDAAbsY, a, y);
+declare_load_abs_reg!(LDXAbsY, x, y);
+declare_load_abs_reg!(LDYAbsX, y, x);
