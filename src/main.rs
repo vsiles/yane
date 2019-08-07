@@ -92,13 +92,14 @@ fn main() {
     loop {
         state = cycle(&mut cpu, &mut opcode, state, &mut nr);
         match state {
-            State::Done => cpu.pc = 0,
+            // State::Done => cpu.pc = 0,
+            State::Done => break,
             _ => {}
         }
 
         let now = SystemTime::now();
         let ms = now.duration_since(start).unwrap().as_millis();
-        if ms > 3000 {
+        if ms > 500 {
             break;
         }
     }
