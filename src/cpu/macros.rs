@@ -1,4 +1,4 @@
-macro_rules! execute_imm {
+macro_rules! execute_load {
     ($reg:ident, $opcode:ident, $cpu:ident) =>
     {{
         let imm = $opcode.imm;

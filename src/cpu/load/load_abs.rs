@@ -41,7 +41,7 @@ macro_rules! declare_load_abs {
             }
 
             fn execute(&self, cpu: &mut Cpu) {
-                execute_imm!($reg, self, cpu)
+                execute_load!($reg, self, cpu)
             }
         }
     }

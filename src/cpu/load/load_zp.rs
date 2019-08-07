@@ -36,7 +36,7 @@ macro_rules! declare_load_zero_page {
             }
 
             fn execute(&self, cpu: &mut Cpu) {
-                execute_imm!($reg, self, cpu)
+                execute_load!($reg, self, cpu)
             }
         }
     }
