@@ -11,5 +11,4 @@ impl OpCode for Nop {
     fn decode(&mut self, _: &mut Cpu) -> bool {
         true
     }
-    fn execute(&self, _: &mut Cpu) {}
 }

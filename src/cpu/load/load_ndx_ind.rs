@@ -1,32 +1,3 @@
-macro_rules! decode_load_ndx_ind {
-    ($opcode:ident, $cpu:ident) =>
-    {{
-         if $opcode.state == 0 {
-             // read offset from memory
-             $opcode.addr = $cpu.read_from_pc();
-             $opcode.state = 1;
-             false
-         } else if $opcode.state == 1 {
-             $opcode.addr = $opcode.addr.overflowing_add($cpu.x).0;
-             $opcode.state = 2;
-             false
-         } else if $opcode.state == 2 {
-             $opcode.low = $cpu.mem[$opcode.addr as usize];
-             $opcode.addr = $opcode.addr + 1;
-             $opcode.state = 3;
-             false
-         } else if $opcode.state == 3 {
-             $opcode.high = $cpu.mem[$opcode.addr as usize];
-             $opcode.state = 4;
-             false
-         } else {
-             let addr : u16 = mk_addr!($opcode.low, $opcode.high);
-             $opcode.imm = $cpu.mem[addr as usize];
-             true
-         }
-     }};
-}
-
 macro_rules! declare_load_ndx_ind {
     ($name:ident, $reg:ident) => {
         pub struct $name {
@@ -49,11 +20,30 @@ macro_rules! declare_load_ndx_ind {
             }
 
             fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                decode_load_ndx_ind!(self, cpu)
-            }
-
-            fn execute(&self, cpu: &mut Cpu) {
-                execute_load!($reg, self, cpu)
+                if self.state == 0 {
+                    // read offset from memory
+                    self.addr = cpu.read_from_pc();
+                    self.state = 1;
+                    false
+                } else if self.state == 1 {
+                    self.addr = self.addr.overflowing_add(cpu.x).0;
+                    self.state = 2;
+                    false
+                } else if self.state == 2 {
+                    self.low = cpu.mem[self.addr as usize];
+                    self.addr = self.addr + 1;
+                    self.state = 3;
+                    false
+                } else if self.state == 3 {
+                    self.high = cpu.mem[self.addr as usize];
+                    self.state = 4;
+                    false
+                } else {
+                    let addr : u16 = mk_addr!(self.low, self.high);
+                    self.imm = cpu.mem[addr as usize];
+                    execute_load!($reg, self, cpu);
+                    true
+                }
             }
         }
     }

@@ -1,35 +1,3 @@
-macro_rules! decode_load_abs_reg {
-    ($opcode:ident, $cpu:ident, $base:ident) =>
-    {{
-        if $opcode.state == 0 {
-            $opcode.low = $cpu.read_from_pc();
-            $opcode.state = 1;
-            false
-        } else if $opcode.state == 1 {
-            $opcode.high = $cpu.read_from_pc();
-            let (low, carry) = $opcode.low.overflowing_add($cpu.$base);
-            $opcode.low = low;
-            $opcode.carry = carry;
-            $opcode.state = 2;
-            false
-        } else if $opcode.state == 2 {
-            let addr : u16 = mk_addr!($opcode.low, $opcode.high);
-            $opcode.imm = $cpu.mem[addr as usize];
-            if $opcode.carry {
-                $opcode.high = $opcode.high + 1;
-                $opcode.state = 3;
-                false
-            } else {
-                true
-            }
-        } else {
-            let addr : u16 = mk_addr!($opcode.low, $opcode.high);
-            $opcode.imm = $cpu.mem[addr as usize];
-            true
-        }
-    }};
-}
-
 macro_rules! declare_load_abs_reg {
     ($name:ident, $reg:ident, $base: ident) => {
         pub struct $name {
@@ -52,11 +20,35 @@ macro_rules! declare_load_abs_reg {
             }
 
             fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                decode_load_abs_reg!(self, cpu, $base)
-            }
-
-            fn execute(&self, cpu: &mut Cpu) {
-                execute_load!($reg, self, cpu)
+                if self.state == 0 {
+                    self.low = cpu.read_from_pc();
+                    self.state = 1;
+                    false
+                } else if self.state == 1 {
+                    self.high = cpu.read_from_pc();
+                    let (low, carry) = self.low.overflowing_add(cpu.$base);
+                    self.low = low;
+                    self.carry = carry;
+                    self.state = 2;
+                    false
+                } else if self.state == 2 {
+                    let addr : u16 = mk_addr!(self.low, self.high);
+                    self.imm = cpu.mem[addr as usize];
+                    if self.carry {
+                        self.high = self.high + 1;
+                        self.state = 3;
+                        false
+                    } else {
+                        execute_load!($reg, self, cpu);
+                        true
+                    }
+                } else {
+                    let addr : u16 = mk_addr!(self.low, self.high);
+                    self.imm = cpu.mem[addr as usize];
+                    println!("Loading {:#x} into reg", self.imm);
+                    execute_load!($reg, self, cpu);
+                    true
+                }
             }
         }
     }

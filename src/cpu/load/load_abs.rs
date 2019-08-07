@@ -1,22 +1,3 @@
-macro_rules! decode_load_abs {
-    ($opcode:ident, $cpu:ident) =>
-    {{
-        if $opcode.state == 0 {
-            $opcode.low = $cpu.read_from_pc();
-            $opcode.state = 1;
-            false
-        } else if $opcode.state == 1 {
-            $opcode.high = $cpu.read_from_pc();
-            $opcode.state = 2;
-            false
-        } else {
-            let addr : u16 = mk_addr!($opcode.low, $opcode.high);
-            $opcode.imm = $cpu.mem[addr as usize];
-            true
-        }
-    }};
-}
-
 macro_rules! declare_load_abs {
     ($name:ident, $reg:ident) => {
         pub struct $name {
@@ -37,11 +18,20 @@ macro_rules! declare_load_abs {
             }
 
             fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                decode_load_abs!(self, cpu)
-            }
-
-            fn execute(&self, cpu: &mut Cpu) {
-                execute_load!($reg, self, cpu)
+                if self.state == 0 {
+                    self.low = cpu.read_from_pc();
+                    self.state = 1;
+                    false
+                } else if self.state == 1 {
+                    self.high = cpu.read_from_pc();
+                    self.state = 2;
+                    false
+                } else {
+                    let addr : u16 = mk_addr!(self.low, self.high);
+                    self.imm = cpu.mem[addr as usize];
+                    execute_load!($reg, self, cpu);
+                    true
+                }
             }
         }
     }

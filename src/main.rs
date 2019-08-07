@@ -64,7 +64,6 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<OpCode>, state: State, nr: &mut usize) 
         State::Processing => {
             println!("Processing");
             if opcode.decode(cpu) {
-                opcode.execute(cpu);
                 println!("< DUMP: A {:02x} X {:02x} Y {:02x} Flags {}",
                     cpu.a, cpu.x, cpu.y, cpu.flags);
                 State::FetchOpcode

@@ -1,24 +1,3 @@
-macro_rules! decode_load_zero_page_reg {
-    ($opcode:ident, $cpu:ident, $base:ident) =>
-    {{
-        if $opcode.state == 0 {
-            // read offset from memory
-            $opcode.addr = $cpu.read_from_pc();
-            $opcode.state = 1;
-            false
-        } else if $opcode.state == 1 {
-            // compute final offset. Wrapping on page 0
-            $opcode.addr = $opcode.addr.overflowing_add($cpu.$base).0;
-            $opcode.state = 2;
-            false
-        } else {
-            // read data from memory using offset
-            $opcode.imm = $cpu.mem[$opcode.addr as usize];
-            true
-        }
-    }};
-}
-
 macro_rules! declare_load_zero_page_reg {
     ($name:ident, $reg:ident, $base:ident) => {
         pub struct $name {
@@ -37,11 +16,22 @@ macro_rules! declare_load_zero_page_reg {
             }
 
             fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                decode_load_zero_page_reg!(self, cpu, $base)
-            }
-
-            fn execute(&self, cpu: &mut Cpu) {
-                execute_load!($reg, self, cpu)
+                if self.state == 0 {
+                    // read offset from memory
+                    self.addr = cpu.read_from_pc();
+                    self.state = 1;
+                    false
+                } else if self.state == 1 {
+                    // compute final offset. Wrapping on page 0
+                    self.addr = self.addr.overflowing_add(cpu.$base).0;
+                    self.state = 2;
+                    false
+                } else {
+                    // read data from memory using offset
+                    self.imm = cpu.mem[self.addr as usize];
+                    execute_load!($reg, self, cpu);
+                    true
+                }
             }
         }
     }

@@ -1,17 +1,3 @@
-macro_rules! decode_store_zero_page {
-    ($opcode:ident, $cpu:ident) =>
-    {{
-        if $opcode.state == 0 {
-            // read offset from memory
-            $opcode.addr = $cpu.read_from_pc();
-            $opcode.state = 1;
-            false
-        } else {
-            true
-        }
-    }};
-}
-
 macro_rules! declare_store_zero_page {
     ($name:ident, $reg:ident) => {
         pub struct $name {
@@ -28,11 +14,15 @@ macro_rules! declare_store_zero_page {
             }
 
             fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                decode_store_zero_page!(self, cpu)
-            }
-
-            fn execute(&self, cpu: &mut Cpu) {
-                execute_store!($reg, self, cpu)
+                if self.state == 0 {
+                    // read offset from memory
+                    self.addr = cpu.read_from_pc();
+                    self.state = 1;
+                    false
+                } else {
+                    execute_store!($reg, self, cpu);
+                    true
+                }
             }
         }
     }
