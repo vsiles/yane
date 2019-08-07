@@ -3,15 +3,17 @@ macro_rules! declare_store_abs {
         pub struct $name {
             low: u8,
             high: u8,
-            state: usize
+            state: usize,
+            size: usize,
         }
 
         impl OpCode for $name {
-            fn new() -> $name {
+            fn new(size: usize) -> $name {
                 $name {
                     low: 0,
                     high: 0,
                     state: 0,
+                    size: size,
                 }
             }
 

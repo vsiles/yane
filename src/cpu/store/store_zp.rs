@@ -2,14 +2,16 @@ macro_rules! declare_store_zero_page {
     ($name:ident, $reg:ident) => {
         pub struct $name {
             addr: u8,
-            state: usize
+            state: usize,
+            size: usize,
         }
 
         impl OpCode for $name {
-            fn new() -> $name {
+            fn new(size: usize) -> $name {
                 $name {
                     addr: 0,
-                    state: 0
+                    state: 0,
+                    size: size,
                 }
             }
 

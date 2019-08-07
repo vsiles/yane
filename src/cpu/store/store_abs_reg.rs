@@ -5,15 +5,17 @@ macro_rules! declare_store_abs_reg {
             high: u8,
             carry: bool,
             state: usize,
+            size: usize,
         }
 
         impl OpCode for $name {
-            fn new() -> $name {
+            fn new(size: usize) -> $name {
                 $name {
                     low: 0,
                     high: 0,
                     carry: false,
                     state: 0,
+                    size: size,
                 }
             }
 

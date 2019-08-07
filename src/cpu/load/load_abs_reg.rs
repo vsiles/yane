@@ -5,17 +5,19 @@ macro_rules! declare_load_abs_reg {
             high: u8,
             carry: bool,
             imm: u8,
-            state: usize
+            state: usize,
+            size: usize,
         }
 
         impl OpCode for $name {
-            fn new() -> $name {
+            fn new(size: usize) -> $name {
                 $name {
                     low: 0,
                     high: 0,
                     carry: false,
                     imm: 0,
-                    state: 0
+                    state: 0,
+                    size: size,
                 }
             }
 
@@ -45,11 +47,20 @@ macro_rules! declare_load_abs_reg {
                 } else {
                     let addr : u16 = mk_addr!(self.low, self.high);
                     self.imm = cpu.mem[addr as usize];
-                    println!("Loading {:#x} into reg", self.imm);
                     execute_load!($reg, self, cpu);
                     true
                 }
             }
+
+            fn log(&self, cpu: &Cpu) {
+                let pc = cpu.pc;
+                let upc : usize = pc as usize;
+                let code = cpu.mem[upc - self.size];
+                let addr = mk_addr!(self.low, self.high);
+                print!("{:04X}  {:02X} {:02X} {:02X} LDA ${:04X},{}", pc, code, 
+                    self.low, self.high, addr, stringify!($base));
+                println!(" @ {:04X} = {:02X} {: >8}{}", addr, self.imm, "", cpu)
+            } 
         }
     }
 }

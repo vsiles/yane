@@ -5,17 +5,19 @@ macro_rules! declare_load_ndx_ind {
             high: u8,
             addr: u8,
             imm: u8,
-            state: usize
+            state: usize,
+            size: usize,
         }
 
         impl OpCode for $name {
-            fn new() -> $name {
+            fn new(size: usize) -> $name {
                 $name {
                     low: 0,
                     high: 0,
                     addr: 0,
                     imm: 0,
-                    state: 0
+                    state: 0,
+                    size: size,
                 }
             }
 
@@ -26,7 +28,7 @@ macro_rules! declare_load_ndx_ind {
                     self.state = 1;
                     false
                 } else if self.state == 1 {
-                    self.addr = self.addr.overflowing_add(cpu.x).0;
+                    self.addr = self.addr.overflowing_add(cpu.X).0;
                     self.state = 2;
                     false
                 } else if self.state == 2 {

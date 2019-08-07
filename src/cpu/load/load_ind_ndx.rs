@@ -6,18 +6,20 @@ macro_rules! declare_load_ind_ndx {
             carry: bool,
             addr: u8,
             imm: u8,
-            state: usize
+            state: usize,
+            size: usize,
         }
 
         impl OpCode for $name {
-            fn new() -> $name {
+            fn new(size: usize) -> $name {
                 $name {
                     low: 0,
                     high: 0,
                     addr: 0,
                     carry: false,
                     imm: 0,
-                    state: 0
+                    state: 0,
+                    size: size,
                 }
             }
 
@@ -34,7 +36,7 @@ macro_rules! declare_load_ind_ndx {
                     false
                 } else if self.state == 2 {
                     self.high = cpu.mem[self.addr as usize];
-                    let (low, carry) = self.low.overflowing_add(cpu.y);
+                    let (low, carry) = self.low.overflowing_add(cpu.Y);
                     self.low = low;
                     self.carry = carry;
                     self.state = 3;

@@ -3,15 +3,17 @@ macro_rules! declare_load_zero_page {
         pub struct $name {
             addr: u8,
             imm: u8,
-            state: usize
+            state: usize,
+            size: usize,
         }
 
         impl OpCode for $name {
-            fn new() -> $name {
+            fn new(size: usize) -> $name {
                 $name {
                     addr: 0,
                     imm: 0,
-                    state: 0
+                    state: 0,
+                    size: size,
                 }
             }
 

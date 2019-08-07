@@ -4,16 +4,18 @@ macro_rules! declare_load_abs {
             low: u8,
             high: u8,
             imm: u8,
-            state: usize
+            state: usize,
+            size: usize,
         }
 
         impl OpCode for $name {
-            fn new() -> $name {
+            fn new(size: usize) -> $name {
                 $name {
                     low: 0,
                     high: 0,
                     imm: 0,
-                    state: 0
+                    state: 0,
+                    size: size,
                 }
             }
 
