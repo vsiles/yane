@@ -8,6 +8,13 @@ macro_rules! execute_load {
     }};
 }
 
+macro_rules! execute_store {
+    ($reg:ident, $opcode:ident, $cpu:ident) =>
+    {{
+         $cpu.mem[$opcode.addr as usize] = $cpu.$reg
+     }};
+}
+
 macro_rules! mk_addr {
     ($low:expr, $high:expr) => {
         (($high as u16) << 8) | ($low as u16)

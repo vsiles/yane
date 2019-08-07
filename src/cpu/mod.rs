@@ -6,6 +6,8 @@ pub mod nop;
 mod macros;
 #[macro_use]
 mod load;
+#[macro_use]
+mod store;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -37,3 +39,12 @@ declare_load_abs_reg!(LDYAbsX, y, x);
 
 declare_load_ndx_ind!(LDANdxInd, a);
 declare_load_ind_ndx!(LDAIndNdx, a);
+
+// STA, STX, STY
+declare_store_zero_page!(STAZeroPage, a);
+declare_store_zero_page!(STXZeroPage, x);
+declare_store_zero_page!(STYZeroPage, y);
+
+declare_store_zero_page_reg!(STAZeroPageX, a, x);
+declare_store_zero_page_reg!(STXZeroPageY, x, y);
+declare_store_zero_page_reg!(STYZeroPageX, y, x);
