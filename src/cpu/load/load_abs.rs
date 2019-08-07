@@ -35,6 +35,16 @@ macro_rules! declare_load_abs {
                     true
                 }
             }
+
+            fn log(&self, cpu: &Cpu) {
+                let pc = cpu.pc;
+                let upc : usize = pc as usize;
+                let code = cpu.mem[upc - self.size];
+                let addr = mk_addr!(self.low, self.high);
+                print!("{:04X}  {:02X} {:02X} {:02X}  LDA ${:04X}", pc, code, 
+                    self.low, self.high, addr);
+                println!(" = {:02X} {: >17}{}", self.imm, "", cpu)
+            } 
         }
     }
 }

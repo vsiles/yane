@@ -16,10 +16,10 @@ impl CpuFlags {
         CpuFlags {
             carry: false,
             zero: false,
-            int_disable: false,
+            int_disable: true,
             decimal_mode: false,
-            b4: false,
-            b5: false,
+            b4: true, // nestest says this one is false at startup
+            b5: true,
             overflow: false,
             negative: false
         }

@@ -57,7 +57,18 @@ macro_rules! declare_load_ind_ndx {
                     execute_load!($reg, self, cpu);
                     true
                 }
-            }
+            } 
+
+            fn log(&self, cpu: &Cpu) {
+                let pc = cpu.pc;
+                let upc : usize = pc as usize;
+                let code = cpu.mem[upc - self.size];
+                let addr : u16 = mk_addr!(self.low, self.high);
+                print!("{:04X}  {:02X} {:02X}     LDA $({:02X}),Y", pc, code, 
+                    self.addr - 1, self.addr - 1);
+                println!(" = {:04X} @ {:04X} = {:02X} {: >1}{}", addr,
+                    addr - (cpu.Y as u16), self.imm, "", cpu)
+            } 
         }
     }
 }

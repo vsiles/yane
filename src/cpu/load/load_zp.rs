@@ -30,6 +30,16 @@ macro_rules! declare_load_zero_page {
                     true
                 }
             }
+
+            fn log(&self, cpu: &Cpu) {
+                let pc = cpu.pc;
+                let upc : usize = pc as usize;
+                let code = cpu.mem[upc - self.size];
+                let payload = cpu.mem[upc + 1 - self.size];
+                print!("{:04X}  {:02X} {:02X}     LDA ${:02X}", pc, code, 
+                    payload, payload);
+                println!(" = {:02X}{: >20}{}", self.imm, "", cpu)
+            } 
         }
     }
 }

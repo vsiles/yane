@@ -13,15 +13,26 @@ pub struct Cpu {
 }
 
 pub fn new(mem: std::vec::Vec<u8>) -> Cpu {
-    Cpu {
+    let mut cpu = Cpu {
         pc: 0,
-        sp: 0,
+        sp: 0xFD,
         A: 0,
         X: 0,
         Y: 0,
-        mem: mem,
+        mem: vec![0; 0x10000],
         flags: CpuFlags::new()
+    };
+    cpu.mem[0x4017] = 0x00; // frame irq enabled
+    cpu.mem[0x4015] = 0x00; // all channels disabled
+    for i in 0..0x14 {
+        cpu.mem[0x4000 + i] = 0x00
     }
+
+    // TEMP DEBUG TEST
+    for i in 0..mem.len() {
+        cpu.mem[i] = mem[i];
+    }
+    cpu
 }
 
 impl Cpu {
