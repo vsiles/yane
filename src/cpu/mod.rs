@@ -16,6 +16,8 @@ mod load_abs;
 mod load_abs_reg;
 #[macro_use]
 mod load_ndx_ind;
+#[macro_use]
+mod load_ind_ndx;
 
 
 pub use cpu::*;
@@ -47,5 +49,4 @@ declare_load_abs_reg!(LDXAbsY, x, y);
 declare_load_abs_reg!(LDYAbsX, y, x);
 
 declare_load_ndx_ind!(LDANdxInd, a);
-
-
+declare_load_ind_ndx!(LDAIndNdx, a);

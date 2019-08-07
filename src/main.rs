@@ -41,6 +41,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<OpCode>, state: State, nr: &mut usize) 
                 0xAC => add_opcode!(LDYAbs, opcode),
                 0xAD => add_opcode!(LDAAbs, opcode),
                 0xAE => add_opcode!(LDXAbs, opcode),
+                0xB1 => add_opcode!(LDAIndNdx, opcode),
                 0xB4 => add_opcode!(LDYZeroPageX, opcode),
                 0xB5 => add_opcode!(LDAZeroPageX, opcode),
                 0xB6 => add_opcode!(LDXZeroPageY, opcode),
