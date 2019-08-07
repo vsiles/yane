@@ -20,7 +20,7 @@ macro_rules! declare_store_zero_page {
                     self.state = 1;
                     false
                 } else {
-                    execute_store!($reg, self, cpu);
+                    execute_store!($reg, self.addr, cpu);
                     true
                 }
             }

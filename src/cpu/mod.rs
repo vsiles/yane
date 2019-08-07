@@ -48,3 +48,14 @@ declare_store_zero_page!(STYZeroPage, y);
 declare_store_zero_page_reg!(STAZeroPageX, a, x);
 declare_store_zero_page_reg!(STXZeroPageY, x, y);
 declare_store_zero_page_reg!(STYZeroPageX, y, x);
+
+declare_store_abs!(STAAbs, a);
+declare_store_abs!(STXAbs, a);
+declare_store_abs!(STYAbs, a);
+
+declare_store_abs_reg!(STAAbsX, a, x);
+declare_store_abs_reg!(STAAbsY, a, y);
+
+declare_store_ndx_ind!(STANdxInd, a);
+
+declare_store_ind_ndx!(STAIndNdx, a);

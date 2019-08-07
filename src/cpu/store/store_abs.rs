@@ -1,31 +1,32 @@
-macro_rules! declare_store_zero_page_reg {
-    ($name:ident, $reg:ident, $base:ident) => {
+macro_rules! declare_store_abs {
+    ($name:ident, $reg:ident) => {
         pub struct $name {
-            addr: u8,
+            low: u8,
+            high: u8,
             state: usize
         }
 
         impl OpCode for $name {
             fn new() -> $name {
                 $name {
-                    addr: 0,
-                    state: 0
+                    low: 0,
+                    high: 0,
+                    state: 0,
                 }
             }
 
             fn decode(&mut self, cpu: &mut Cpu) -> bool {
                 if self.state == 0 {
-                    // read offset from memory
-                    self.addr = cpu.read_from_pc();
+                    self.low = cpu.read_from_pc();
                     self.state = 1;
                     false
                 } else if self.state == 1 {
-                    // compute final offset. Wrapping on page 0
-                    self.addr = self.addr.overflowing_add(cpu.$base).0;
+                    self.high = cpu.read_from_pc();
                     self.state = 2;
                     false
                 } else {
-                    execute_store!($reg, self.addr, cpu);
+                    let addr : u16 = mk_addr!(self.low, self.high);
+                    execute_store!($reg, addr, cpu);
                     true
                 }
             }

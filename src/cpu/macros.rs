@@ -9,9 +9,9 @@ macro_rules! execute_load {
 }
 
 macro_rules! execute_store {
-    ($reg:ident, $opcode:ident, $cpu:ident) =>
+    ($reg:ident, $addr:expr, $cpu:ident) =>
     {{
-         $cpu.mem[$opcode.addr as usize] = $cpu.$reg
+         $cpu.mem[$addr as usize] = $cpu.$reg
      }};
 }
 

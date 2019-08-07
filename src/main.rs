@@ -31,12 +31,19 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<OpCode>, state: State, nr: &mut usize) 
             let op = cpu.read_from_pc();
             println!("Fetching Opcode {:02x}", op);
             match op {
+                0x81 => add_opcode!(STANdxInd, opcode),
                 0x84 => add_opcode!(STYZeroPage, opcode),
                 0x85 => add_opcode!(STAZeroPage, opcode),
                 0x86 => add_opcode!(STXZeroPage, opcode),
+                0x8C => add_opcode!(STYAbs, opcode),
+                0x8D => add_opcode!(STAAbs, opcode),
+                0x8E => add_opcode!(STXAbs, opcode),
+                0x91 => add_opcode!(STAIndNdx, opcode),
                 0x94 => add_opcode!(STYZeroPageX, opcode),
                 0x95 => add_opcode!(STAZeroPageX, opcode),
                 0x96 => add_opcode!(STXZeroPageY, opcode),
+                0x99 => add_opcode!(STAAbsY, opcode),
+                0x9D => add_opcode!(STAAbsX, opcode),
                 0xA0 => add_opcode!(LDYImm, opcode),
                 0xA1 => add_opcode!(LDANdxInd, opcode),
                 0xA2 => add_opcode!(LDXImm, opcode),
