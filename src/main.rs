@@ -32,6 +32,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<OpCode>, state: State, nr: &mut usize) 
             println!("Fetching Opcode {:02x}", op);
             match op {
                 0xA0 => add_opcode!(LDYImm, opcode),
+                0xA1 => add_opcode!(LDANdxInd, opcode),
                 0xA2 => add_opcode!(LDXImm, opcode),
                 0xA4 => add_opcode!(LDYZeroPage, opcode),
                 0xA5 => add_opcode!(LDAZeroPage, opcode),

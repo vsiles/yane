@@ -14,6 +14,9 @@ mod load_zp_reg;
 mod load_abs;
 #[macro_use]
 mod load_abs_reg;
+#[macro_use]
+mod load_ndx_ind;
+
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -43,10 +46,6 @@ declare_load_abs_reg!(LDAAbsY, a, y);
 declare_load_abs_reg!(LDXAbsY, x, y);
 declare_load_abs_reg!(LDYAbsX, y, x);
 
+declare_load_ndx_ind!(LDANdxInd, a);
 
-// 1      PC       R  fetch opcode, increment PC
-// 2      PC       R  fetch pointer address, increment PC
-// 3    pointer    R  read from the address, add X to it
-// 4   pointer+X   R  fetch effective address low
-// 5  pointer+X+1  R  fetch effective address high
-// 6    address    R  read from effective address
+
