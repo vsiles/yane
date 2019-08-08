@@ -61,9 +61,12 @@ macro_rules! declare_load_abs_reg {
                     let pc = cpu.pc;
                     let upc : usize = pc as usize;
                     let code = cpu.mem[upc - SIZE];
+                    let low = cpu.mem[upc + 1 - SIZE];
+                    let high = cpu.mem[upc + 2 - SIZE];
+                    let base = mk_addr!(low, high);
                     let addr = mk_addr!(self.low, self.high);
-                    print!("{:04X}  {:02X} {:02X} {:02X}  LDA ${:04X},{}", pc, code, 
-                           self.low, self.high, addr, stringify!($base));
+                    print!("{:04X}  {:02X} {:02X} {:02X}  LD{} ${:04X},{}", pc, code, 
+                           self.low, self.high, stringify!($reg), base, stringify!($base));
                     println!(" @ {:04X} = {:02X} {: >8}{}", addr, self.imm, "", cpu)
                 } 
             }

@@ -41,8 +41,8 @@ macro_rules! declare_load_zero_page {
                     let upc : usize = pc as usize;
                     let code = cpu.mem[upc - SIZE];
                     let payload = cpu.mem[upc + 1 - SIZE];
-                    print!("{:04X}  {:02X} {:02X}     LDA ${:02X}", pc, code, 
-                           payload, payload);
+                    print!("{:04X}  {:02X} {:02X}     LD{} ${:02X}", pc, code, 
+                           payload, stringify!($reg), payload);
                     println!(" = {:02X}{: >20}{}", self.imm, "", cpu)
                 } 
             }

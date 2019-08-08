@@ -4,7 +4,7 @@ macro_rules! declare_store_zero_page_reg {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE : usize = 2;
+            // const SIZE : usize = 2;
 
             pub struct $name {
                 addr: u8,

@@ -28,7 +28,8 @@ macro_rules! declare_load_imm {
                     let upc : usize = pc as usize;
                     let code = cpu.mem[upc - SIZE];
                     let imm = self.imm;
-                    print!("{:04X}  {:02X} {:02X}     LDA #${:02X}", pc, code, imm, imm);
+                    print!("{:04X}  {:02X} {:02X}     LD{} #${:02X}", pc, code, imm,
+                          stringify!($reg), imm);
                     println!("{: <24}{}", "", cpu)
                 } 
             }

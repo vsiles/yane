@@ -50,8 +50,8 @@ declare_store_zero_page_reg!(stx_zero_page_y, StxZeroPageY, X, Y);
 declare_store_zero_page_reg!(sty_zero_page_x, StyZeroPageX, Y, X);
 
 declare_store_abs!(sta_abs, StaAbs, A);
-declare_store_abs!(stx_abs, StxAbs, A);
-declare_store_abs!(sty_abs, StyAbs, A);
+declare_store_abs!(stx_abs, StxAbs, X);
+declare_store_abs!(sty_abs, StyAbs, Y);
 
 declare_store_abs_reg!(sta_abs_x, StaAbsX, A, X);
 declare_store_abs_reg!(sta_abs_y, StaAbsY, A, Y);

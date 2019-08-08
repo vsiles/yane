@@ -4,7 +4,7 @@ macro_rules! declare_store_ind_ndx {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE : usize = 2;
+            // const SIZE : usize = 2;
 
             pub struct $name {
                 low: u8,

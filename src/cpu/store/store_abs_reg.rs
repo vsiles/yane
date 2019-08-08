@@ -11,6 +11,7 @@ macro_rules! declare_store_abs_reg {
                 high: u8,
                 carry: bool,
                 state: usize,
+                old: u8,
             }
 
             impl OpCode for $name {
@@ -20,6 +21,7 @@ macro_rules! declare_store_abs_reg {
                         high: 0,
                         carry: false,
                         state: 0,
+                        old: 0
                     }
                 }
 
@@ -37,7 +39,7 @@ macro_rules! declare_store_abs_reg {
                         false
                     } else if self.state == 2 {
                         let addr = mk_addr!(self.low, self.high);
-                        let _ = cpu.mem[addr as usize];
+                        self.old = cpu.mem[addr as usize];
                         self.state = 3;
                         if self.carry {
                             self.high = self.high + 1;
@@ -45,9 +47,23 @@ macro_rules! declare_store_abs_reg {
                         false
                     } else {
                         let addr : u16 = mk_addr!(self.low, self.high);
+                        self.old = cpu.mem[addr as usize];
                         execute_store!($reg, addr, cpu);
                         true
                     }
+                }
+                fn log(&self, cpu: &Cpu) {
+                    let pc = cpu.pc;
+                    let upc : usize = pc as usize;
+                    let code = cpu.mem[upc - SIZE];
+                    let low = cpu.mem[upc + 1 - SIZE];
+                    let high = cpu.mem[upc + 2 - SIZE];
+                    let base = mk_addr!(low, high);
+                    let addr : u16 = mk_addr!(self.low, self.high);
+                    print!("{:04X}  {:02X} {:02X} {:02X}  ST{} ${:04X}", pc, code, 
+                           self.low, self.high, stringify!($reg), base);
+                    println!(",{} @ {:04X} = {:02X} {: >8}{}", stringify!($base),
+                        addr, self.old, "", cpu)
                 }
             }
         }

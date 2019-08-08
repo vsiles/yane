@@ -59,8 +59,8 @@ macro_rules! declare_load_ndx_ind {
                     let code = cpu.mem[upc - SIZE];
                     let payload = cpu.mem[upc + 1 - SIZE];
                     let addr : u16 = mk_addr!(self.low, self.high);
-                    print!("{:04X}  {:02X} {:02X}     LDA (${:02X},X)", pc, code, 
-                           payload, payload);
+                    print!("{:04X}  {:02X} {:02X}     LD{} (${:02X},X)", pc, code, 
+                           payload, stringify!($reg), payload);
                     println!(" @ {:02X} = {:04X} = {:02X} {: >3}{}", self.addr - 1,
                              addr, self.imm, "", cpu)
                 } 

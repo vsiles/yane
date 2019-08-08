@@ -36,6 +36,16 @@ macro_rules! declare_store_abs {
                         true
                     }
                 }
+
+                fn log(&self, cpu: &Cpu) {
+                    let pc = cpu.pc;
+                    let upc : usize = pc as usize;
+                    let code = cpu.mem[upc - SIZE];
+                    let addr : u16 = mk_addr!(self.low, self.high);
+                    print!("{:04X}  {:02X} {:02X} {:02X}  ST{} ${:04X}", pc, code, 
+                           self.low, self.high, stringify!($reg), addr);
+                    println!(" = {:02X} {: >17}{}", cpu.$reg, "", cpu)
+                } 
             }
         }
     }
