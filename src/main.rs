@@ -5,6 +5,38 @@ use std::time::SystemTime;
 mod cpu;
 
 use cpu::*;
+use cpu::lda_imm::LdaImm;
+use cpu::ldx_imm::LdxImm;
+use cpu::ldy_imm::LdyImm;
+use cpu::lda_zero_page::LdaZeroPage;
+use cpu::ldx_zero_page::LdxZeroPage;
+use cpu::ldy_zero_page::LdyZeroPage;
+use cpu::lda_zero_page_x::LdaZeroPageX;
+use cpu::ldy_zero_page_x::LdyZeroPageX;
+use cpu::ldx_zero_page_y::LdxZeroPageY;
+use cpu::lda_abs::LdaAbs;
+use cpu::ldx_abs::LdxAbs;
+use cpu::ldy_abs::LdyAbs;
+use cpu::lda_abs_x::LdaAbsX;
+use cpu::lda_abs_y::LdaAbsY;
+use cpu::ldx_abs_y::LdxAbsY;
+use cpu::ldy_abs_x::LdyAbsX;
+use cpu::lda_ndx_ind::LdaNdxInd;
+use cpu::lda_ind_ndx::LdaIndNdx;
+
+use cpu::sta_zero_page::StaZeroPage;
+use cpu::stx_zero_page::StxZeroPage;
+use cpu::sty_zero_page::StyZeroPage;
+use cpu::sta_zero_page_x::StaZeroPageX;
+use cpu::stx_zero_page_y::StxZeroPageY;
+use cpu::sty_zero_page_x::StyZeroPageX;
+use cpu::sta_abs::StaAbs;
+use cpu::stx_abs::StxAbs;
+use cpu::sty_abs::StyAbs;
+use cpu::sta_abs_x::StaAbsX;
+use cpu::sta_abs_y::StaAbsY;
+use cpu::sta_ndx_ind::StaNdxInd;
+use cpu::sta_ind_ndx::StaIndNdx;
 
 enum State {
     FetchOpcode,
@@ -13,15 +45,15 @@ enum State {
 }
 
 macro_rules! add_opcode {
-    ($name: ident,$opcode: ident, $size: expr) => {
+    ($name: ident,$opcode: ident) => {
         {
-            *$opcode = Box::new($name::new($size));
+            *$opcode = Box::new($name::new());
             State::Processing
         }
     };
 }
 
-fn cycle(cpu: &mut Cpu, opcode: &mut Box<OpCode>, state: State, nr: &mut usize) -> State {
+fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usize) -> State {
     // print!("> [CYCLE {:04} PC {:#04x}]", *nr, cpu.pc);
     *nr = *nr + 1;
     match state {
@@ -29,37 +61,37 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<OpCode>, state: State, nr: &mut usize) 
             let op = cpu.read_from_pc();
             // println!("Fetching Opcode {:02x}", op);
             match op {
-                0x81 => add_opcode!(STANdxInd,    opcode, 2),
-                0x84 => add_opcode!(STYZeroPage,  opcode, 2),
-                0x85 => add_opcode!(STAZeroPage,  opcode, 2),
-                0x86 => add_opcode!(STXZeroPage,  opcode, 2),
-                0x8C => add_opcode!(STYAbs,       opcode, 3),
-                0x8D => add_opcode!(STAAbs,       opcode, 3),
-                0x8E => add_opcode!(STXAbs,       opcode, 3),
-                0x91 => add_opcode!(STAIndNdx,    opcode, 2),
-                0x94 => add_opcode!(STYZeroPageX, opcode, 2),
-                0x95 => add_opcode!(STAZeroPageX, opcode, 2),
-                0x96 => add_opcode!(STXZeroPageY, opcode, 2),
-                0x99 => add_opcode!(STAAbsY,      opcode, 3),
-                0x9D => add_opcode!(STAAbsX,      opcode, 3),
-                0xA0 => add_opcode!(LDYImm,       opcode, 2),
-                0xA1 => add_opcode!(LDANdxInd,    opcode, 2),
-                0xA2 => add_opcode!(LDXImm,       opcode, 2),
-                0xA4 => add_opcode!(LDYZeroPage,  opcode, 2),
-                0xA5 => add_opcode!(LDAZeroPage,  opcode, 2),
-                0xA6 => add_opcode!(LDXZeroPage,  opcode, 2),
-                0xA9 => add_opcode!(LDAImm,       opcode, 2),
-                0xAC => add_opcode!(LDYAbs,       opcode, 3),
-                0xAD => add_opcode!(LDAAbs,       opcode, 3),
-                0xAE => add_opcode!(LDXAbs,       opcode, 3),
-                0xB1 => add_opcode!(LDAIndNdx,    opcode, 2),
-                0xB4 => add_opcode!(LDYZeroPageX, opcode, 2),
-                0xB5 => add_opcode!(LDAZeroPageX, opcode, 2),
-                0xB6 => add_opcode!(LDXZeroPageY, opcode, 2),
-                0xB9 => add_opcode!(LDAAbsY,      opcode, 3),
-                0xBC => add_opcode!(LDYAbsX,      opcode, 3),
-                0xBD => add_opcode!(LDAAbsX,      opcode, 3),
-                0xBE => add_opcode!(LDXAbsY,      opcode, 3),
+                0x81 => add_opcode!(StaNdxInd, opcode),
+                0x84 => add_opcode!(StyZeroPage, opcode),
+                0x85 => add_opcode!(StaZeroPage, opcode),
+                0x86 => add_opcode!(StxZeroPage, opcode),
+                0x8C => add_opcode!(StyAbs, opcode),
+                0x8D => add_opcode!(StaAbs, opcode),
+                0x8E => add_opcode!(StxAbs, opcode),
+                0x91 => add_opcode!(StaIndNdx, opcode),
+                0x94 => add_opcode!(StyZeroPageX, opcode),
+                0x95 => add_opcode!(StaZeroPageX, opcode),
+                0x96 => add_opcode!(StxZeroPageY, opcode),
+                0x99 => add_opcode!(StaAbsY, opcode),
+                0x9D => add_opcode!(StaAbsX, opcode),
+                0xA0 => add_opcode!(LdyImm, opcode),
+                0xA1 => add_opcode!(LdaNdxInd, opcode),
+                0xA2 => add_opcode!(LdxImm, opcode),
+                0xA4 => add_opcode!(LdyZeroPage, opcode),
+                0xA5 => add_opcode!(LdaZeroPage, opcode),
+                0xA6 => add_opcode!(LdxZeroPage, opcode),
+                0xA9 => add_opcode!(LdaImm, opcode),
+                0xAC => add_opcode!(LdyAbs, opcode),
+                0xAD => add_opcode!(LdaAbs, opcode),
+                0xAE => add_opcode!(LdxAbs, opcode),
+                0xB1 => add_opcode!(LdaIndNdx, opcode),
+                0xB4 => add_opcode!(LdyZeroPageX, opcode),
+                0xB5 => add_opcode!(LdaZeroPageX, opcode),
+                0xB6 => add_opcode!(LdxZeroPageY, opcode),
+                0xB9 => add_opcode!(LdaAbsY, opcode),
+                0xBC => add_opcode!(LdyAbsX, opcode),
+                0xBD => add_opcode!(LdaAbsX, opcode),
+                0xBE => add_opcode!(LdxAbsY, opcode),
                 _ => {
                     /*TODO deal with errors */
                     State::Done
@@ -94,7 +126,7 @@ fn main() {
     let rom = fs::read(filename).expect("Can't read input file");
 
     let mut cpu = cpu::new(rom);
-    let mut opcode : Box<dyn OpCode> = Box::new(Nop::new(0));
+    let mut opcode : Box<dyn OpCode> = Box::new(Nop::new());
     let mut state = State::FetchOpcode;
     let mut nr = 0;
 

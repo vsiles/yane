@@ -5,7 +5,7 @@ pub struct Nop {
 }
 
 impl OpCode for Nop {
-    fn new(_: usize) -> Nop {
+    fn new() -> Nop {
         Nop {}
     }
     fn decode(&mut self, _: &mut Cpu) -> bool {
