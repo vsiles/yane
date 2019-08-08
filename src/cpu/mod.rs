@@ -7,7 +7,8 @@ mod macros;
 #[macro_use]
 pub mod load;
 #[macro_use]
-mod store;
+pub mod store;
+pub mod jmp;
 
 pub use cpu::*;
 pub use opcode::OpCode;

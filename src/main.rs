@@ -38,6 +38,8 @@ use cpu::sta_abs_y::StaAbsY;
 use cpu::sta_ndx_ind::StaNdxInd;
 use cpu::sta_ind_ndx::StaIndNdx;
 
+use cpu::jmp::Jmp;
+
 enum State {
     FetchOpcode,
     Processing,
@@ -92,6 +94,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0xBC => add_opcode!(LdyAbsX, opcode),
                 0xBD => add_opcode!(LdaAbsX, opcode),
                 0xBE => add_opcode!(LdxAbsY, opcode),
+                0x4C => add_opcode!(Jmp, opcode),
                 _ => {
                     /*TODO deal with errors */
                     State::Done
