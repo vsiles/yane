@@ -42,6 +42,12 @@ use cpu::jmp::Jmp;
 use cpu::jsr::Jsr;
 use cpu::nop::Nop;
 use cpu::sec::Sec;
+use cpu::sed::Sed;
+use cpu::sei::Sei;
+use cpu::clc::Clc;
+use cpu::cld::Cld;
+use cpu::cli::Cli;
+use cpu::clv::Clv;
 
 enum State {
     FetchOpcode,
@@ -64,8 +70,11 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
             let op = cpu.read_from_pc();
             // println!("Fetching Opcode {:02x}", op);
             match op {
+                0x18 => add_opcode!(Clc, opcode),
                 0x20 => add_opcode!(Jsr, opcode),
                 0x38 => add_opcode!(Sec, opcode),
+                0x58 => add_opcode!(Cli, opcode),
+                0x78 => add_opcode!(Sei, opcode),
                 0x4C => add_opcode!(Jmp, opcode),
                 0x81 => add_opcode!(StaNdxInd, opcode),
                 0x84 => add_opcode!(StyZeroPage, opcode),
@@ -94,11 +103,14 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0xB4 => add_opcode!(LdyZeroPageX, opcode),
                 0xB5 => add_opcode!(LdaZeroPageX, opcode),
                 0xB6 => add_opcode!(LdxZeroPageY, opcode),
+                0xB8 => add_opcode!(Clv, opcode),
                 0xB9 => add_opcode!(LdaAbsY, opcode),
                 0xBC => add_opcode!(LdyAbsX, opcode),
                 0xBD => add_opcode!(LdaAbsX, opcode),
                 0xBE => add_opcode!(LdxAbsY, opcode),
+                0xD8 => add_opcode!(Cld, opcode),
                 0xEA => add_opcode!(Nop, opcode),
+                0xF8 => add_opcode!(Sed, opcode),
                 _ => {
                     /*TODO deal with errors */
                     State::Done

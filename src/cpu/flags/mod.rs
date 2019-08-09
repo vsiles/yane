@@ -1,3 +1,6 @@
+#[macro_use]
+mod opcode;
+
 use std::fmt;
 
 pub struct CpuFlags {

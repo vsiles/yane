@@ -1,5 +1,6 @@
 pub mod cpu;
-mod flags;
+#[macro_use]
+pub mod flags;
 pub mod nop;
 pub mod opcode;
 #[macro_use]
@@ -10,7 +11,6 @@ pub mod load;
 pub mod store;
 pub mod jmp;
 pub mod jsr;
-pub mod sec;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -59,3 +59,12 @@ declare_store_abs_reg!(sta_abs_y, StaAbsY, A, Y);
 declare_store_ndx_ind!(sta_ndx_ind, StaNdxInd, A);
 
 declare_store_ind_ndx!(sta_ind_ndx, StaIndNdx, A);
+
+// SEC, SED, SEI, CLC, CLD, CLI 
+declare_flags_opcode!(sec, Sec, SEC, carry, true);
+declare_flags_opcode!(sed, Sed, SED, decimal_mode, true);
+declare_flags_opcode!(sei, Sei, SEI, int_disable, true);
+declare_flags_opcode!(clc, Clc, CLC, carry, false);
+declare_flags_opcode!(cld, Cld, CLD, decimal_mode, false);
+declare_flags_opcode!(cli, Cli, CLI, int_disable, false);
+declare_flags_opcode!(clv, Clv, CLV, overflow, false);
