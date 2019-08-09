@@ -14,9 +14,6 @@ pub mod jsr;
 pub use cpu::*;
 pub use opcode::OpCode;
 
-// Dummy Nop instruction used as a fallback
-pub use nop::Nop;
-
 // LDA, LDX, LDY
 declare_load_imm!(lda_imm, LdaImm, A);
 declare_load_imm!(ldx_imm, LdxImm, X);

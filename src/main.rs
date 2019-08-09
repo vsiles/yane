@@ -40,6 +40,7 @@ use cpu::sta_ind_ndx::StaIndNdx;
 
 use cpu::jmp::Jmp;
 use cpu::jsr::Jsr;
+use cpu::nop::Nop;
 
 enum State {
     FetchOpcode,
@@ -64,6 +65,8 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
             let op = cpu.read_from_pc();
             // println!("Fetching Opcode {:02x}", op);
             match op {
+                0x20 => add_opcode!(Jsr, opcode),
+                0x4C => add_opcode!(Jmp, opcode),
                 0x81 => add_opcode!(StaNdxInd, opcode),
                 0x84 => add_opcode!(StyZeroPage, opcode),
                 0x85 => add_opcode!(StaZeroPage, opcode),
@@ -95,8 +98,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0xBC => add_opcode!(LdyAbsX, opcode),
                 0xBD => add_opcode!(LdaAbsX, opcode),
                 0xBE => add_opcode!(LdxAbsY, opcode),
-                0x4C => add_opcode!(Jmp, opcode),
-                0x20 => add_opcode!(Jsr, opcode),
+                0xEA => add_opcode!(Nop, opcode),
                 _ => {
                     /*TODO deal with errors */
                     State::Done
