@@ -32,9 +32,8 @@ macro_rules! declare_store_zero_page {
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = cpu.pc;
-                    let upc : usize = pc as usize;
-                    let code = cpu.mem[upc - SIZE];
+                    let pc = (cpu.pc as usize) - SIZE;
+                    let code = cpu.mem[pc];
                     print!("{:04X}  {:02X} {:02X}     ST{} ${:02X}", pc, code, 
                            self.addr, stringify!($reg), self.addr);
                     println!(" = {:02X} {: >19}{}", cpu.A, "", cpu)

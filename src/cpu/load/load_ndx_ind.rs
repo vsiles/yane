@@ -54,10 +54,9 @@ macro_rules! declare_load_ndx_ind {
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = cpu.pc;
-                    let upc : usize = pc as usize;
-                    let code = cpu.mem[upc - SIZE];
-                    let payload = cpu.mem[upc + 1 - SIZE];
+                    let pc = (cpu.pc as usize) - SIZE;
+                    let code = cpu.mem[pc];
+                    let payload = cpu.mem[pc + 1 - SIZE];
                     let addr : u16 = mk_addr!(self.low, self.high);
                     print!("{:04X}  {:02X} {:02X}     LD{} (${:02X},X)", pc, code, 
                            payload, stringify!($reg), payload);

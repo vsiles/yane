@@ -39,6 +39,7 @@ use cpu::sta_ndx_ind::StaNdxInd;
 use cpu::sta_ind_ndx::StaIndNdx;
 
 use cpu::jmp::Jmp;
+use cpu::jsr::Jsr;
 
 enum State {
     FetchOpcode,
@@ -95,6 +96,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0xBD => add_opcode!(LdaAbsX, opcode),
                 0xBE => add_opcode!(LdxAbsY, opcode),
                 0x4C => add_opcode!(Jmp, opcode),
+                0x20 => add_opcode!(Jsr, opcode),
                 _ => {
                     /*TODO deal with errors */
                     State::Done

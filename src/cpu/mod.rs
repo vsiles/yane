@@ -9,6 +9,7 @@ pub mod load;
 #[macro_use]
 pub mod store;
 pub mod jmp;
+pub mod jsr;
 
 pub use cpu::*;
 pub use opcode::OpCode;

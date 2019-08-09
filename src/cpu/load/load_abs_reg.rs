@@ -58,11 +58,10 @@ macro_rules! declare_load_abs_reg {
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = cpu.pc;
-                    let upc : usize = pc as usize;
-                    let code = cpu.mem[upc - SIZE];
-                    let low = cpu.mem[upc + 1 - SIZE];
-                    let high = cpu.mem[upc + 2 - SIZE];
+                    let pc = (cpu.pc as usize) - SIZE;
+                    let code = cpu.mem[pc];
+                    let low = cpu.mem[pc + 1 - SIZE];
+                    let high = cpu.mem[pc + 2 - SIZE];
                     let base = mk_addr!(low, high);
                     let addr = mk_addr!(self.low, self.high);
                     print!("{:04X}  {:02X} {:02X} {:02X}  LD{} ${:04X},{}", pc, code, 

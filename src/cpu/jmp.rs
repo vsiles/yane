@@ -34,8 +34,8 @@ impl OpCode for Jmp {
     }
 
     fn log(&self, cpu: &Cpu) {
-        let pc = self.old;
-        let code = cpu.mem[pc as usize - SIZE];
+        let pc = (self.old as usize) - SIZE;
+        let code = cpu.mem[pc];
         let addr = mk_addr!(self.low, self.high);
         print!("{:04X}  {:02X} {:02X} {:02X}  JMP ${:04X}", pc, code, 
                self.low, self.high, addr);

@@ -24,9 +24,8 @@ macro_rules! declare_load_imm {
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = cpu.pc;
-                    let upc : usize = pc as usize;
-                    let code = cpu.mem[upc - SIZE];
+                    let pc = (cpu.pc as usize) - SIZE;
+                    let code = cpu.mem[pc];
                     let imm = self.imm;
                     print!("{:04X}  {:02X} {:02X}     LD{} #${:02X}", pc, code, imm,
                           stringify!($reg), imm);
