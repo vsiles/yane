@@ -4,7 +4,7 @@ macro_rules! declare_store_abs_reg {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE : usize = 3;
+            const SIZE: usize = 3;
 
             pub struct $name {
                 low: u8,
@@ -21,7 +21,7 @@ macro_rules! declare_store_abs_reg {
                         high: 0,
                         carry: false,
                         state: 0,
-                        old: 0
+                        old: 0,
                     }
                 }
 
@@ -46,7 +46,7 @@ macro_rules! declare_store_abs_reg {
                         }
                         false
                     } else {
-                        let addr : u16 = mk_addr!(self.low, self.high);
+                        let addr: u16 = mk_addr!(self.low, self.high);
                         self.old = cpu.mem[addr as usize];
                         execute_store!($reg, addr, cpu);
                         true
@@ -58,13 +58,26 @@ macro_rules! declare_store_abs_reg {
                     let low = cpu.mem[pc + 1 - SIZE];
                     let high = cpu.mem[pc + 2 - SIZE];
                     let base = mk_addr!(low, high);
-                    let addr : u16 = mk_addr!(self.low, self.high);
-                    print!("{:04X}  {:02X} {:02X} {:02X}  ST{} ${:04X}", pc, code, 
-                           self.low, self.high, stringify!($reg), base);
-                    println!(",{} @ {:04X} = {:02X} {: >8}{}", stringify!($base),
-                        addr, self.old, "", cpu)
+                    let addr: u16 = mk_addr!(self.low, self.high);
+                    print!(
+                        "{:04X}  {:02X} {:02X} {:02X}  ST{} ${:04X}",
+                        pc,
+                        code,
+                        self.low,
+                        self.high,
+                        stringify!($reg),
+                        base
+                    );
+                    println!(
+                        ",{} @ {:04X} = {:02X} {: >8}{}",
+                        stringify!($base),
+                        addr,
+                        self.old,
+                        "",
+                        cpu
+                    )
                 }
             }
         }
-    }
+    };
 }

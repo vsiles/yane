@@ -1,42 +1,42 @@
-use std::fs;
 use std::env;
+use std::fs;
 use std::time::SystemTime;
 
 mod cpu;
 
-use cpu::*;
-use cpu::lda_imm::LdaImm;
-use cpu::ldx_imm::LdxImm;
-use cpu::ldy_imm::LdyImm;
-use cpu::lda_zero_page::LdaZeroPage;
-use cpu::ldx_zero_page::LdxZeroPage;
-use cpu::ldy_zero_page::LdyZeroPage;
-use cpu::lda_zero_page_x::LdaZeroPageX;
-use cpu::ldy_zero_page_x::LdyZeroPageX;
-use cpu::ldx_zero_page_y::LdxZeroPageY;
 use cpu::lda_abs::LdaAbs;
-use cpu::ldx_abs::LdxAbs;
-use cpu::ldy_abs::LdyAbs;
 use cpu::lda_abs_x::LdaAbsX;
 use cpu::lda_abs_y::LdaAbsY;
-use cpu::ldx_abs_y::LdxAbsY;
-use cpu::ldy_abs_x::LdyAbsX;
-use cpu::lda_ndx_ind::LdaNdxInd;
+use cpu::lda_imm::LdaImm;
 use cpu::lda_ind_ndx::LdaIndNdx;
+use cpu::lda_ndx_ind::LdaNdxInd;
+use cpu::lda_zero_page::LdaZeroPage;
+use cpu::lda_zero_page_x::LdaZeroPageX;
+use cpu::ldx_abs::LdxAbs;
+use cpu::ldx_abs_y::LdxAbsY;
+use cpu::ldx_imm::LdxImm;
+use cpu::ldx_zero_page::LdxZeroPage;
+use cpu::ldx_zero_page_y::LdxZeroPageY;
+use cpu::ldy_abs::LdyAbs;
+use cpu::ldy_abs_x::LdyAbsX;
+use cpu::ldy_imm::LdyImm;
+use cpu::ldy_zero_page::LdyZeroPage;
+use cpu::ldy_zero_page_x::LdyZeroPageX;
+use cpu::*;
 
-use cpu::sta_zero_page::StaZeroPage;
-use cpu::stx_zero_page::StxZeroPage;
-use cpu::sty_zero_page::StyZeroPage;
-use cpu::sta_zero_page_x::StaZeroPageX;
-use cpu::stx_zero_page_y::StxZeroPageY;
-use cpu::sty_zero_page_x::StyZeroPageX;
 use cpu::sta_abs::StaAbs;
-use cpu::stx_abs::StxAbs;
-use cpu::sty_abs::StyAbs;
 use cpu::sta_abs_x::StaAbsX;
 use cpu::sta_abs_y::StaAbsY;
-use cpu::sta_ndx_ind::StaNdxInd;
 use cpu::sta_ind_ndx::StaIndNdx;
+use cpu::sta_ndx_ind::StaNdxInd;
+use cpu::sta_zero_page::StaZeroPage;
+use cpu::sta_zero_page_x::StaZeroPageX;
+use cpu::stx_abs::StxAbs;
+use cpu::stx_zero_page::StxZeroPage;
+use cpu::stx_zero_page_y::StxZeroPageY;
+use cpu::sty_abs::StyAbs;
+use cpu::sty_zero_page::StyZeroPage;
+use cpu::sty_zero_page_x::StyZeroPageX;
 
 use cpu::jmp::Jmp;
 use cpu::jsr::Jsr;
@@ -49,12 +49,10 @@ enum State {
 }
 
 macro_rules! add_opcode {
-    ($name: ident,$opcode: ident) => {
-        {
-            *$opcode = Box::new($name::new());
-            State::Processing
-        }
-    };
+    ($name: ident,$opcode: ident) => {{
+        *$opcode = Box::new($name::new());
+        State::Processing
+    }};
 }
 
 fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usize) -> State {
@@ -104,7 +102,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                     State::Done
                 }
             }
-        },
+        }
         State::Processing => {
             // println!("Processing");
             if opcode.decode(cpu) {
@@ -113,8 +111,8 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
             } else {
                 State::Processing
             }
-        },
-        State::Done => state
+        }
+        State::Done => state,
     }
 }
 
@@ -133,7 +131,7 @@ fn main() {
     let rom = fs::read(filename).expect("Can't read input file");
 
     let mut cpu = cpu::new(rom);
-    let mut opcode : Box<dyn OpCode> = Box::new(Nop::new());
+    let mut opcode: Box<dyn OpCode> = Box::new(Nop::new());
     let mut state = State::FetchOpcode;
     let mut nr = 0;
 

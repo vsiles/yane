@@ -43,12 +43,12 @@ macro_rules! declare_store_ndx_ind {
                         self.state = 4;
                         false
                     } else {
-                        let addr : u16 = mk_addr!(self.low, self.high);
+                        let addr: u16 = mk_addr!(self.low, self.high);
                         execute_store!($reg, addr, cpu);
                         true
                     }
                 }
             }
         }
-    }
+    };
 }

@@ -4,7 +4,7 @@ macro_rules! declare_load_imm {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE : usize = 2;
+            const SIZE: usize = 2;
 
             pub struct $name {
                 imm: u8,
@@ -12,9 +12,7 @@ macro_rules! declare_load_imm {
 
             impl OpCode for $name {
                 fn new() -> $name {
-                    $name {
-                        imm: 0,
-                    }
+                    $name { imm: 0 }
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
@@ -27,11 +25,17 @@ macro_rules! declare_load_imm {
                     let pc = (cpu.pc as usize) - SIZE;
                     let code = cpu.mem[pc];
                     let imm = self.imm;
-                    print!("{:04X}  {:02X} {:02X}     LD{} #${:02X}", pc, code, imm,
-                          stringify!($reg), imm);
+                    print!(
+                        "{:04X}  {:02X} {:02X}     LD{} #${:02X}",
+                        pc,
+                        code,
+                        imm,
+                        stringify!($reg),
+                        imm
+                    );
                     println!("{: <24}{}", "", cpu)
-                } 
+                }
             }
         }
-    }
+    };
 }

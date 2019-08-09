@@ -4,7 +4,7 @@ macro_rules! declare_store_abs {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE : usize = 3;
+            const SIZE: usize = 3;
 
             pub struct $name {
                 low: u8,
@@ -31,7 +31,7 @@ macro_rules! declare_store_abs {
                         self.state = 2;
                         false
                     } else {
-                        let addr : u16 = mk_addr!(self.low, self.high);
+                        let addr: u16 = mk_addr!(self.low, self.high);
                         execute_store!($reg, addr, cpu);
                         true
                     }
@@ -40,12 +40,19 @@ macro_rules! declare_store_abs {
                 fn log(&self, cpu: &Cpu) {
                     let pc = (cpu.pc as usize) - SIZE;
                     let code = cpu.mem[pc];
-                    let addr : u16 = mk_addr!(self.low, self.high);
-                    print!("{:04X}  {:02X} {:02X} {:02X}  ST{} ${:04X}", pc, code, 
-                           self.low, self.high, stringify!($reg), addr);
+                    let addr: u16 = mk_addr!(self.low, self.high);
+                    print!(
+                        "{:04X}  {:02X} {:02X} {:02X}  ST{} ${:04X}",
+                        pc,
+                        code,
+                        self.low,
+                        self.high,
+                        stringify!($reg),
+                        addr
+                    );
                     println!(" = {:02X} {: >17}{}", cpu.$reg, "", cpu)
-                } 
+                }
             }
         }
-    }
+    };
 }

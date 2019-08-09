@@ -1,11 +1,10 @@
 macro_rules! declare_load_ind_ndx {
     ($mod:ident, $name:ident, $reg:ident) => {
-
         pub mod $mod {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE : usize = 2;
+            const SIZE: usize = 2;
 
             pub struct $name {
                 low: u8,
@@ -47,7 +46,7 @@ macro_rules! declare_load_ind_ndx {
                         self.state = 3;
                         false
                     } else if self.state == 3 {
-                        let addr : u16 = mk_addr!(self.low, self.high);
+                        let addr: u16 = mk_addr!(self.low, self.high);
                         self.imm = cpu.mem[addr as usize];
                         self.state = 4;
                         if self.carry {
@@ -57,23 +56,35 @@ macro_rules! declare_load_ind_ndx {
                             true
                         }
                     } else {
-                        let addr : u16 = mk_addr!(self.low, self.high);
+                        let addr: u16 = mk_addr!(self.low, self.high);
                         self.imm = cpu.mem[addr as usize];
                         execute_load!($reg, self, cpu);
                         true
                     }
-                } 
+                }
 
                 fn log(&self, cpu: &Cpu) {
                     let pc = (cpu.pc as usize) - SIZE;
                     let code = cpu.mem[pc];
-                    let addr : u16 = mk_addr!(self.low, self.high);
-                    print!("{:04X}  {:02X} {:02X}     LD{} $({:02X}),Y", pc, code, 
-                           self.addr - 1, stringify!($reg), self.addr - 1);
-                    println!(" = {:04X} @ {:04X} = {:02X} {: >1}{}", addr,
-                             addr - (cpu.Y as u16), self.imm, "", cpu)
-                } 
+                    let addr: u16 = mk_addr!(self.low, self.high);
+                    print!(
+                        "{:04X}  {:02X} {:02X}     LD{} $({:02X}),Y",
+                        pc,
+                        code,
+                        self.addr - 1,
+                        stringify!($reg),
+                        self.addr - 1
+                    );
+                    println!(
+                        " = {:04X} @ {:04X} = {:02X} {: >1}{}",
+                        addr,
+                        addr - (cpu.Y as u16),
+                        self.imm,
+                        "",
+                        cpu
+                    )
+                }
             }
         }
-    }
+    };
 }

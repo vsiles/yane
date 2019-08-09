@@ -44,7 +44,7 @@ macro_rules! declare_store_ind_ndx {
                         self.state = 3;
                         false
                     } else if self.state == 3 {
-                        let addr : u16 = mk_addr!(self.low, self.high);
+                        let addr: u16 = mk_addr!(self.low, self.high);
                         let _ = cpu.mem[addr as usize];
                         self.state = 4;
                         if self.carry {
@@ -52,12 +52,12 @@ macro_rules! declare_store_ind_ndx {
                         }
                         false
                     } else {
-                        let addr : u16 = mk_addr!(self.low, self.high);
+                        let addr: u16 = mk_addr!(self.low, self.high);
                         execute_store!($reg, addr, cpu);
                         true
                     }
                 }
             }
         }
-    }
+    };
 }

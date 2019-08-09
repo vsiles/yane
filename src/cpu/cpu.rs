@@ -20,7 +20,7 @@ pub fn new(mem: std::vec::Vec<u8>) -> Cpu {
         X: 0,
         Y: 0,
         mem: vec![0; 0x10000],
-        flags: CpuFlags::new()
+        flags: CpuFlags::new(),
     };
     cpu.mem[0x4017] = 0x00; // frame irq enabled
     cpu.mem[0x4015] = 0x00; // all channels disabled
@@ -45,7 +45,14 @@ impl Cpu {
 
 impl fmt::Display for Cpu {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}",
-            self.A, self.X, self.Y, self.flags.to_p(), self.sp)
+        write!(
+            f,
+            "A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}",
+            self.A,
+            self.X,
+            self.Y,
+            self.flags.to_p(),
+            self.sp
+        )
     }
 }

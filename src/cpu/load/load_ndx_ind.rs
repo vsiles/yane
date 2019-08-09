@@ -1,11 +1,10 @@
 macro_rules! declare_load_ndx_ind {
     ($mod:ident, $name:ident, $reg:ident) => {
-
         pub mod $mod {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE : usize = 2;
+            const SIZE: usize = 2;
 
             pub struct $name {
                 low: u8,
@@ -46,7 +45,7 @@ macro_rules! declare_load_ndx_ind {
                         self.state = 4;
                         false
                     } else {
-                        let addr : u16 = mk_addr!(self.low, self.high);
+                        let addr: u16 = mk_addr!(self.low, self.high);
                         self.imm = cpu.mem[addr as usize];
                         execute_load!($reg, self, cpu);
                         true
@@ -57,13 +56,25 @@ macro_rules! declare_load_ndx_ind {
                     let pc = (cpu.pc as usize) - SIZE;
                     let code = cpu.mem[pc];
                     let payload = cpu.mem[pc + 1 - SIZE];
-                    let addr : u16 = mk_addr!(self.low, self.high);
-                    print!("{:04X}  {:02X} {:02X}     LD{} (${:02X},X)", pc, code, 
-                           payload, stringify!($reg), payload);
-                    println!(" @ {:02X} = {:04X} = {:02X} {: >3}{}", self.addr - 1,
-                             addr, self.imm, "", cpu)
-                } 
+                    let addr: u16 = mk_addr!(self.low, self.high);
+                    print!(
+                        "{:04X}  {:02X} {:02X}     LD{} (${:02X},X)",
+                        pc,
+                        code,
+                        payload,
+                        stringify!($reg),
+                        payload
+                    );
+                    println!(
+                        " @ {:02X} = {:04X} = {:02X} {: >3}{}",
+                        self.addr - 1,
+                        addr,
+                        self.imm,
+                        "",
+                        cpu
+                    )
+                }
             }
         }
-    }
+    };
 }

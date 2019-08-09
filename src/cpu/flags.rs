@@ -8,7 +8,7 @@ pub struct CpuFlags {
     pub b4: bool,
     pub b5: bool,
     pub overflow: bool,
-    pub negative: bool
+    pub negative: bool,
 }
 
 impl CpuFlags {
@@ -21,12 +21,12 @@ impl CpuFlags {
             b4: true, // nestest says this one is false at startup
             b5: true,
             overflow: false,
-            negative: false
+            negative: false,
         }
     }
-    
+
     pub fn to_p(&self) -> u8 {
-        let mut ret : u8 = 0;
+        let mut ret: u8 = 0;
         if self.carry {
             ret = ret | (1 << 0)
         }
@@ -57,7 +57,9 @@ impl CpuFlags {
 
 impl fmt::Display for CpuFlags {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(C{} Z{} I{} D{} B{}{} O{} N{})",
+        write!(
+            f,
+            "(C{} Z{} I{} D{} B{}{} O{} N{})",
             if self.carry { 1 } else { 0 },
             if self.zero { 1 } else { 0 },
             if self.int_disable { 1 } else { 0 },
@@ -65,6 +67,7 @@ impl fmt::Display for CpuFlags {
             if self.b4 { 1 } else { 0 },
             if self.b5 { 1 } else { 0 },
             if self.overflow { 1 } else { 0 },
-            if self.negative { 1 } else { 0 })
+            if self.negative { 1 } else { 0 }
+        )
     }
 }

@@ -1,13 +1,13 @@
 use super::Cpu;
 use super::OpCode;
 
-const SIZE : usize = 3;
+const SIZE: usize = 3;
 
 pub struct Jmp {
     low: u8,
     high: u8,
     state: usize,
-    old: u16
+    old: u16,
 }
 
 impl OpCode for Jmp {
@@ -16,7 +16,7 @@ impl OpCode for Jmp {
             low: 0,
             high: 0,
             state: 0,
-            old: 0
+            old: 0,
         }
     }
 
@@ -37,8 +37,10 @@ impl OpCode for Jmp {
         let pc = (self.old as usize) - SIZE;
         let code = cpu.mem[pc];
         let addr = mk_addr!(self.low, self.high);
-        print!("{:04X}  {:02X} {:02X} {:02X}  JMP ${:04X}", pc, code, 
-               self.low, self.high, addr);
+        print!(
+            "{:04X}  {:02X} {:02X} {:02X}  JMP ${:04X}",
+            pc, code, self.low, self.high, addr
+        );
         println!("{: >23}{}", "", cpu)
-    } 
+    }
 }

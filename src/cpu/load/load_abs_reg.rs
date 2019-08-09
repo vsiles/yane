@@ -1,11 +1,10 @@
 macro_rules! declare_load_abs_reg {
     ($mod:ident, $name:ident, $reg:ident, $base: ident) => {
-
         pub mod $mod {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE : usize = 3;
+            const SIZE: usize = 3;
 
             pub struct $name {
                 low: u8,
@@ -39,7 +38,7 @@ macro_rules! declare_load_abs_reg {
                         self.state = 2;
                         false
                     } else if self.state == 2 {
-                        let addr : u16 = mk_addr!(self.low, self.high);
+                        let addr: u16 = mk_addr!(self.low, self.high);
                         self.imm = cpu.mem[addr as usize];
                         if self.carry {
                             self.high = self.high + 1;
@@ -50,7 +49,7 @@ macro_rules! declare_load_abs_reg {
                             true
                         }
                     } else {
-                        let addr : u16 = mk_addr!(self.low, self.high);
+                        let addr: u16 = mk_addr!(self.low, self.high);
                         self.imm = cpu.mem[addr as usize];
                         execute_load!($reg, self, cpu);
                         true
@@ -64,11 +63,19 @@ macro_rules! declare_load_abs_reg {
                     let high = cpu.mem[pc + 2 - SIZE];
                     let base = mk_addr!(low, high);
                     let addr = mk_addr!(self.low, self.high);
-                    print!("{:04X}  {:02X} {:02X} {:02X}  LD{} ${:04X},{}", pc, code, 
-                           self.low, self.high, stringify!($reg), base, stringify!($base));
+                    print!(
+                        "{:04X}  {:02X} {:02X} {:02X}  LD{} ${:04X},{}",
+                        pc,
+                        code,
+                        self.low,
+                        self.high,
+                        stringify!($reg),
+                        base,
+                        stringify!($base)
+                    );
                     println!(" @ {:04X} = {:02X} {: >8}{}", addr, self.imm, "", cpu)
-                } 
+                }
             }
         }
-    }
+    };
 }

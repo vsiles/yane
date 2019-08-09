@@ -1,7 +1,7 @@
-mod flags;
 pub mod cpu;
-pub mod opcode;
+mod flags;
 pub mod nop;
+pub mod opcode;
 #[macro_use]
 mod macros;
 #[macro_use]

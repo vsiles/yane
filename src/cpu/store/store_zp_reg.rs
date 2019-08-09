@@ -13,10 +13,7 @@ macro_rules! declare_store_zero_page_reg {
 
             impl OpCode for $name {
                 fn new() -> $name {
-                    $name {
-                        addr: 0,
-                        state: 0,
-                    }
+                    $name { addr: 0, state: 0 }
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
@@ -37,5 +34,5 @@ macro_rules! declare_store_zero_page_reg {
                 }
             }
         }
-    }
+    };
 }
