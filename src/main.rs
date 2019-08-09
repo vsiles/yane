@@ -41,6 +41,7 @@ use cpu::sty_zero_page_x::StyZeroPageX;
 use cpu::jmp::Jmp;
 use cpu::jsr::Jsr;
 use cpu::nop::Nop;
+use cpu::sec::Sec;
 
 enum State {
     FetchOpcode,
@@ -64,6 +65,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
             // println!("Fetching Opcode {:02x}", op);
             match op {
                 0x20 => add_opcode!(Jsr, opcode),
+                0x38 => add_opcode!(Sec, opcode),
                 0x4C => add_opcode!(Jmp, opcode),
                 0x81 => add_opcode!(StaNdxInd, opcode),
                 0x84 => add_opcode!(StyZeroPage, opcode),

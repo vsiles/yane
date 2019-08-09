@@ -10,6 +10,7 @@ pub mod load;
 pub mod store;
 pub mod jmp;
 pub mod jsr;
+pub mod sec;
 
 pub use cpu::*;
 pub use opcode::OpCode;
