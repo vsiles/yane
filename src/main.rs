@@ -3,6 +3,7 @@ use std::fs;
 use std::time::SystemTime;
 
 mod cpu;
+mod format;
 
 use cpu::lda_abs::LdaAbs;
 use cpu::lda_abs_x::LdaAbsX;
@@ -143,6 +144,12 @@ fn main() {
     let filename = &args[1];
 
     let rom = fs::read(filename).expect("Can't read input file");
+
+    let header = format::ines::new(&rom);
+    match &header {
+        Some(header) => println!("Dumping header info:\n{}\n", header),
+        None => { println!("Invalid header"); std::process::exit(1) }
+    }
 
     let mut cpu = cpu::new(rom);
     let mut opcode: Box<dyn OpCode> = Box::new(Nop::new());
