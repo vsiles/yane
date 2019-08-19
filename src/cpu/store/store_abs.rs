@@ -4,7 +4,7 @@ macro_rules! declare_store_abs {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE: usize = 3;
+            const SIZE: u16 = 3;
 
             pub struct $name {
                 low: u8,
@@ -38,8 +38,8 @@ macro_rules! declare_store_abs {
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = (cpu.pc as usize) - SIZE;
-                    let code = cpu.mem[pc];
+                    let pc = cpu.pc - SIZE;
+                    let code = cpu.mem.get(pc);
                     let addr: u16 = mk_addr!(self.low, self.high);
                     print!(
                         "{:04X}  {:02X} {:02X} {:02X}  ST{} ${:04X}",

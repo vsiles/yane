@@ -4,7 +4,7 @@ macro_rules! declare_load_ndx_ind {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE: usize = 2;
+            const SIZE: u16 = 2;
 
             pub struct $name {
                 low: u8,
@@ -36,26 +36,26 @@ macro_rules! declare_load_ndx_ind {
                         self.state = 2;
                         false
                     } else if self.state == 2 {
-                        self.low = cpu.mem[self.addr as usize];
+                        self.low = cpu.mem.get(self.addr as u16);
                         self.addr = self.addr + 1;
                         self.state = 3;
                         false
                     } else if self.state == 3 {
-                        self.high = cpu.mem[self.addr as usize];
+                        self.high = cpu.mem.get(self.addr as u16);
                         self.state = 4;
                         false
                     } else {
                         let addr: u16 = mk_addr!(self.low, self.high);
-                        self.imm = cpu.mem[addr as usize];
+                        self.imm = cpu.mem.get(addr);
                         execute_load!($reg, self, cpu);
                         true
                     }
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = (cpu.pc as usize) - SIZE;
-                    let code = cpu.mem[pc];
-                    let payload = cpu.mem[pc + 1 - SIZE];
+                    let pc = cpu.pc - SIZE;
+                    let code = cpu.mem.get(pc);
+                    let payload = cpu.mem.get(pc + 1 - SIZE);
                     let addr: u16 = mk_addr!(self.low, self.high);
                     print!(
                         "{:04X}  {:02X} {:02X}     LD{} (${:02X},X)",

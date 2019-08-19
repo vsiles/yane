@@ -2,7 +2,7 @@
 use super::Cpu;
 use super::OpCode;
 
-const SIZE: usize = 3;
+const SIZE: u16 = 3;
 
 pub struct Jsr {
     low: u8,
@@ -36,16 +36,16 @@ impl OpCode for Jsr {
             false
         } else if self.state == 2 {
             // 4  $0100,S  W  push PCH on stack, decrement S
-            let sp: usize = 0x1000 + (cpu.sp as usize);
-            cpu.mem[sp] = ((self.old >> 8) & 0xF) as u8;
+            let sp: u16 = 0x1000 + cpu.sp as u16;
+            cpu.mem.set(sp, ((self.old >> 8) & 0xF) as u8);
             let (sp, _) = cpu.sp.overflowing_sub(1);
             cpu.sp = sp;
             self.state = 3;
             false
         } else if self.state == 3 {
             // 5  $0100,S  W  push PCL on stack, decrement S
-            let sp: usize = 0x1000 + (cpu.sp as usize);
-            cpu.mem[sp] = (self.old & 0xF) as u8;
+            let sp: u16 = 0x1000 + cpu.sp as u16;
+            cpu.mem.set(sp, (self.old & 0xF) as u8);
             self.state = 4;
             false
         } else {
@@ -59,8 +59,8 @@ impl OpCode for Jsr {
     }
 
     fn log(&self, cpu: &Cpu) {
-        let pc = (self.old as usize) - SIZE;
-        let code = cpu.mem[pc];
+        let pc = self.old - SIZE;
+        let code = cpu.mem.get(pc);
         let addr = mk_addr!(self.low, self.high);
         print!(
             "{:04X}  {:02X} {:02X} {:02X}  JSR ${:04X}",

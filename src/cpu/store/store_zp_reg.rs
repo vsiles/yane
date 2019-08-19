@@ -28,7 +28,7 @@ macro_rules! declare_store_zero_page_reg {
                         self.state = 2;
                         false
                     } else {
-                        execute_store!($reg, self.addr, cpu);
+                        execute_store!($reg, self.addr as u16, cpu);
                         true
                     }
                 }

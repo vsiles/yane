@@ -20,14 +20,14 @@ pub mod ines {
     }
 
     pub struct Header {
-        prg_rom_size: usize,
+        pub prg_rom_size: usize,
         chr_rom_size: usize,
         // Flags 6
         mirroring: Mirroring,
         has_battery: bool,
         has_trainer: bool,
         ignore_mirroring: bool,
-        mapper: usize,
+        pub mapper: usize,
         // Flags 7
         #[allow(dead_code)]
         vs_unisystem: bool,

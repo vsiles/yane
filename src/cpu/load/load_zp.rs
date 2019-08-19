@@ -4,7 +4,7 @@ macro_rules! declare_load_zero_page {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE: usize = 2;
+            const SIZE: u16 = 2;
 
             pub struct $name {
                 addr: u8,
@@ -29,16 +29,16 @@ macro_rules! declare_load_zero_page {
                         false
                     } else {
                         // read data from memory using offset in page 0
-                        self.imm = cpu.mem[self.addr as usize];
+                        self.imm = cpu.mem.get(self.addr as u16);
                         execute_load!($reg, self, cpu);
                         true
                     }
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = (cpu.pc as usize) - SIZE;
-                    let code = cpu.mem[pc];
-                    let payload = cpu.mem[pc + 1 - SIZE];
+                    let pc = cpu.pc - SIZE;
+                    let code = cpu.mem.get(pc);
+                    let payload = cpu.mem.get(pc + 1 - SIZE);
                     print!(
                         "{:04X}  {:02X} {:02X}     LD{} ${:02X}",
                         pc,

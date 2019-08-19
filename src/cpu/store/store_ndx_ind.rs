@@ -4,7 +4,7 @@ macro_rules! declare_store_ndx_ind {
             use super::Cpu;
             use super::OpCode;
 
-            // const SIZE : usize = 2;
+            // const SIZE : u16 = 2;
 
             pub struct $name {
                 low: u8,
@@ -34,12 +34,12 @@ macro_rules! declare_store_ndx_ind {
                         self.state = 2;
                         false
                     } else if self.state == 2 {
-                        self.low = cpu.mem[self.addr as usize];
+                        self.low = cpu.mem.get(self.addr as u16);
                         self.addr = self.addr + 1;
                         self.state = 3;
                         false
                     } else if self.state == 3 {
-                        self.high = cpu.mem[self.addr as usize];
+                        self.high = cpu.mem.get(self.addr as u16);
                         self.state = 4;
                         false
                     } else {

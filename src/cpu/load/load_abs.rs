@@ -4,7 +4,7 @@ macro_rules! declare_load_abs {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE: usize = 3;
+            const SIZE: u16 = 3;
 
             pub struct $name {
                 low: u8,
@@ -34,15 +34,15 @@ macro_rules! declare_load_abs {
                         false
                     } else {
                         let addr: u16 = mk_addr!(self.low, self.high);
-                        self.imm = cpu.mem[addr as usize];
+                        self.imm = cpu.mem.get(addr);
                         execute_load!($reg, self, cpu);
                         true
                     }
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = (cpu.pc as usize) - SIZE;
-                    let code = cpu.mem[pc];
+                    let pc = cpu.pc - SIZE;
+                    let code = cpu.mem.get(pc);
                     let addr = mk_addr!(self.low, self.high);
                     print!(
                         "{:04X}  {:02X} {:02X} {:02X}  LD{} ${:04X}",

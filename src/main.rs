@@ -4,6 +4,8 @@ use std::time::SystemTime;
 
 mod cpu;
 mod format;
+mod memory;
+use memory::Memory;
 
 use cpu::lda_abs::LdaAbs;
 use cpu::lda_abs_x::LdaAbsX;
@@ -143,15 +145,34 @@ fn main() {
 
     let filename = &args[1];
 
-    let rom = fs::read(filename).expect("Can't read input file");
-
-    let header = format::ines::new(&rom);
-    match &header {
-        Some(header) => println!("Dumping header info:\n{}\n", header),
+    let mut rom = fs::read(filename).expect("Can't read input file");
+    if rom.len() < 16 {
+        println!("Invalid iNes file, no header can be found");
+        std::process::exit(1);
+    }
+    let rom_data: Vec<_> = rom.drain(16..).collect();
+    let opt_header = format::ines::new(&rom);
+    let header = match opt_header {
+        Some(header) => {
+            println!("Dumping header info:\n{}\n", header);
+            header
+        },
         None => { println!("Invalid header"); std::process::exit(1) }
+    };
+
+    if header.mapper != 0 {
+        println!("Sorry, only mapper 0 is supported at the moment");
+        std::process::exit(1)
     }
 
-    let mut cpu = cpu::new(rom);
+    if header.prg_rom_size != 0x4000 {
+        println!("Sorry, only NROM-128 is supported");
+        std::process::exit(1);
+    }
+
+    let memory = Memory::new(rom_data);
+
+    let mut cpu = cpu::new(memory);
     let mut opcode: Box<dyn OpCode> = Box::new(Nop::new());
     let mut state = State::FetchOpcode;
     let mut nr = 0;

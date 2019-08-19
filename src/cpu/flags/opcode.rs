@@ -4,7 +4,7 @@ macro_rules! declare_flags_opcode {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE: usize = 1;
+            const SIZE: u16 = 1;
 
             pub struct $name {}
 
@@ -13,13 +13,13 @@ macro_rules! declare_flags_opcode {
                     $name {}
                 }
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                    let _ = cpu.mem[cpu.pc as usize];
+                    let _ = cpu.mem.get(cpu.pc);
                     cpu.flags.$flag = $val;
                     true
                 }
                 fn log(&self, cpu: &Cpu) {
-                    let pc: usize = (cpu.pc as usize) - SIZE;
-                    let code = cpu.mem[pc];
+                    let pc = cpu.pc - SIZE;
+                    let code = cpu.mem.get(pc);
                     print!("{:04X}  {:02X}        {}", pc, code, stringify!($fname));
                     println!("{: >29}{}", "", cpu)
                 }

@@ -4,7 +4,7 @@ macro_rules! declare_load_imm {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE: usize = 2;
+            const SIZE: u16 = 2;
 
             pub struct $name {
                 imm: u8,
@@ -22,8 +22,8 @@ macro_rules! declare_load_imm {
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = (cpu.pc as usize) - SIZE;
-                    let code = cpu.mem[pc];
+                    let pc = cpu.pc - SIZE;
+                    let code = cpu.mem.get(pc);
                     let imm = self.imm;
                     print!(
                         "{:04X}  {:02X} {:02X}     LD{} #${:02X}",
