@@ -11,7 +11,7 @@ macro_rules! declare_store_abs_reg {
                 high: u8,
                 carry: bool,
                 state: usize,
-                old: u8,
+                saved: u8,
             }
 
             impl OpCode for $name {
@@ -21,7 +21,7 @@ macro_rules! declare_store_abs_reg {
                         high: 0,
                         carry: false,
                         state: 0,
-                        old: 0,
+                        saved: 0,
                     }
                 }
 
@@ -39,7 +39,7 @@ macro_rules! declare_store_abs_reg {
                         false
                     } else if self.state == 2 {
                         let addr = mk_addr!(self.low, self.high);
-                        self.old = cpu.mem.get(addr);
+                        self.saved = cpu.mem.get(addr);
                         self.state = 3;
                         if self.carry {
                             self.high = self.high + 1;
@@ -47,8 +47,8 @@ macro_rules! declare_store_abs_reg {
                         false
                     } else {
                         let addr: u16 = mk_addr!(self.low, self.high);
-                        self.old = cpu.mem.get(addr);
-                        execute_store!($reg, addr, cpu);
+                        self.saved = cpu.mem.get(addr);
+                        cpu.mem.set(addr, cpu.$reg);
                         true
                     }
                 }
@@ -72,7 +72,7 @@ macro_rules! declare_store_abs_reg {
                         ",{} @ {:04X} = {:02X} {: >8}{}",
                         stringify!($base),
                         addr,
-                        self.old,
+                        self.saved,
                         "",
                         cpu
                     )

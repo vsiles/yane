@@ -11,6 +11,7 @@ macro_rules! declare_store_ndx_ind {
                 high: u8,
                 addr: u8,
                 state: usize,
+                saved: u8,
             }
 
             impl OpCode for $name {
@@ -20,6 +21,7 @@ macro_rules! declare_store_ndx_ind {
                         high: 0,
                         addr: 0,
                         state: 0,
+                        saved: 0,
                     }
                 }
 
@@ -44,7 +46,8 @@ macro_rules! declare_store_ndx_ind {
                         false
                     } else {
                         let addr: u16 = mk_addr!(self.low, self.high);
-                        execute_store!($reg, addr, cpu);
+                        self.saved = cpu.mem.get(addr);
+                        cpu.mem.set(addr, cpu.$reg);
                         true
                     }
                 }

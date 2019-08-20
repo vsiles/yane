@@ -10,6 +10,7 @@ macro_rules! declare_store_abs {
                 low: u8,
                 high: u8,
                 state: usize,
+                saved: u8,
             }
 
             impl OpCode for $name {
@@ -18,6 +19,7 @@ macro_rules! declare_store_abs {
                         low: 0,
                         high: 0,
                         state: 0,
+                        saved: 0,
                     }
                 }
 
@@ -32,7 +34,8 @@ macro_rules! declare_store_abs {
                         false
                     } else {
                         let addr: u16 = mk_addr!(self.low, self.high);
-                        execute_store!($reg, addr, cpu);
+                        self.saved = cpu.mem.get(addr);
+                        cpu.mem.set(addr, cpu.$reg);
                         true
                     }
                 }
@@ -50,7 +53,7 @@ macro_rules! declare_store_abs {
                         stringify!($reg),
                         addr
                     );
-                    println!(" = {:02X} {: >17}{}", cpu.$reg, "", cpu)
+                    println!(" = {:02X} {: >17}{}", self.saved, "", cpu)
                 }
             }
         }

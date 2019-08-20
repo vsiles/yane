@@ -9,11 +9,16 @@ macro_rules! declare_store_zero_page {
             pub struct $name {
                 addr: u8,
                 state: usize,
+                saved: u8,
             }
 
             impl OpCode for $name {
                 fn new() -> $name {
-                    $name { addr: 0, state: 0 }
+                    $name {
+                        addr: 0,
+                        state: 0,
+                        saved: 0,
+                    }
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
@@ -23,7 +28,9 @@ macro_rules! declare_store_zero_page {
                         self.state = 1;
                         false
                     } else {
-                        execute_store!($reg, self.addr as u16, cpu);
+                        let addr = self.addr as u16;
+                        self.saved = cpu.mem.get(addr);
+                        cpu.mem.set(addr, cpu.$reg);
                         true
                     }
                 }
@@ -39,7 +46,7 @@ macro_rules! declare_store_zero_page {
                         stringify!($reg),
                         self.addr
                     );
-                    println!(" = {:02X} {: >19}{}", cpu.A, "", cpu)
+                    println!(" = {:02X} {: >19}{}", self.saved, "", cpu)
                 }
             }
         }
