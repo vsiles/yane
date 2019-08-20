@@ -43,6 +43,7 @@ use cpu::sty_zero_page_x::StyZeroPageX;
 
 use cpu::jmp::Jmp;
 use cpu::jsr::Jsr;
+use cpu::rts::Rts;
 use cpu::nop::Nop;
 use cpu::sec::Sec;
 use cpu::sed::Sed;
@@ -56,6 +57,13 @@ use cpu::bcs::Bcs;
 use cpu::bcc::Bcc;
 use cpu::beq::Beq;
 use cpu::bne::Bne;
+use cpu::bvs::Bvs;
+use cpu::bvc::Bvc;
+use cpu::bpl::Bpl;
+use cpu::bmi::Bmi;
+
+use cpu::bit::bit_abs::BitAbs;
+use cpu::bit::bit_zp::BitZp;
 
 enum State {
     FetchOpcode,
@@ -78,10 +86,17 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
             let op = cpu.read_from_pc();
             // println!("Fetching Opcode {:02x}", op);
             match op {
+                0x10 => add_opcode!(Bpl, opcode),
                 0x18 => add_opcode!(Clc, opcode),
                 0x20 => add_opcode!(Jsr, opcode),
+                0x24 => add_opcode!(BitZp, opcode),
+                0x2c => add_opcode!(BitAbs, opcode),
+                0x30 => add_opcode!(Bmi, opcode),
                 0x38 => add_opcode!(Sec, opcode),
+                0x50 => add_opcode!(Bvc, opcode),
                 0x58 => add_opcode!(Cli, opcode),
+                0x60 => add_opcode!(Rts, opcode),
+                0x70 => add_opcode!(Bvs, opcode),
                 0x78 => add_opcode!(Sei, opcode),
                 0x4C => add_opcode!(Jmp, opcode),
                 0x81 => add_opcode!(StaNdxInd, opcode),

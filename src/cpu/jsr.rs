@@ -30,14 +30,13 @@ impl OpCode for Jsr {
             false
         } else if self.state == 1 {
             // 3  $0100,S  R  internal operation (predecrement S?)
-            let (sp, _) = cpu.sp.overflowing_sub(1);
-            cpu.sp = sp;
             self.state = 2;
             false
         } else if self.state == 2 {
             // 4  $0100,S  W  push PCH on stack, decrement S
             let sp: u16 = 0x1000 + cpu.sp as u16;
-            cpu.mem.set(sp, ((self.old >> 8) & 0xF) as u8);
+            let val = (self.old >> 8) & 0xFF;
+            cpu.mem.set(sp, val as u8);
             let (sp, _) = cpu.sp.overflowing_sub(1);
             cpu.sp = sp;
             self.state = 3;
@@ -45,7 +44,10 @@ impl OpCode for Jsr {
         } else if self.state == 3 {
             // 5  $0100,S  W  push PCL on stack, decrement S
             let sp: u16 = 0x1000 + cpu.sp as u16;
-            cpu.mem.set(sp, (self.old & 0xF) as u8);
+            let val = self.old & 0xFF;
+            cpu.mem.set(sp, val as u8);
+            let (sp, _) = cpu.sp.overflowing_sub(1);
+            cpu.sp = sp;
             self.state = 4;
             false
         } else {
@@ -66,6 +68,8 @@ impl OpCode for Jsr {
             "{:04X}  {:02X} {:02X} {:02X}  JSR ${:04X}",
             pc, code, self.low, self.high, addr
         );
-        println!("{: >23}{}", "", cpu)
+        let mut old_cpu = cpu.debug_clone();
+        old_cpu.sp = old_cpu.sp + 2;
+        println!("{: >23}{}", "", old_cpu);
     }
 }

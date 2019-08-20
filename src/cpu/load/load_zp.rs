@@ -41,7 +41,7 @@ macro_rules! declare_load_zero_page {
                 fn log(&self, cpu: &Cpu) {
                     let pc = cpu.pc - SIZE;
                     let code = cpu.mem.get(pc);
-                    let payload = cpu.mem.get(pc + 1 - SIZE);
+                    let payload = cpu.mem.get(pc + 1);
                     print!(
                         "{:04X}  {:02X} {:02X}     LD{} ${:02X}",
                         pc,
