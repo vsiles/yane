@@ -15,7 +15,7 @@ pub struct Cpu {
 
 pub fn new(mem: Memory) -> Cpu {
     let cpu = Cpu {
-        pc: 0xFFFC, // reset vector
+        pc: 0xC000, // TODO set to reset vector 0xFFFC once PPU + irq are supported
         sp: 0xFD,
         A: 0,
         X: 0,
@@ -23,12 +23,6 @@ pub fn new(mem: Memory) -> Cpu {
         mem: mem,
         flags: CpuFlags::new(),
     };
-    println!("DEBUG: 0xbffc = {:#x}", cpu.mem.get(0xbffc));
-    println!("DEBUG: 0xbffd = {:#x}", cpu.mem.get(0xbffd));
-    println!("DEBUG: 0xbffe = {:#x}", cpu.mem.get(0xbffe));
-    println!("DEBUG: 0xfffc = {:#x}", cpu.mem.get(0xfffc));
-    println!("DEBUG: 0xfffd = {:#x}", cpu.mem.get(0xfffd));
-    println!("DEBUG: 0xfffe = {:#x}", cpu.mem.get(0xfffe));
     // TODO: 
     // cpu.mem[0x4017] = 0x00; // frame irq enabled
     // cpu.mem[0x4015] = 0x00; // all channels disabled

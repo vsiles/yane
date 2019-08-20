@@ -55,13 +55,16 @@ impl Memory {
     }
 
     pub fn new(rom: Vec<u8>) -> Memory {
-        // CPU will initialize those ? Or maybe here ?
-        println!("DEBUG MEMORY NEW: {:#x} {:#x} {:#x}", rom[0], rom[1], rom[2]);
-        let mut raw_data = Vec::with_capacity(0x8000 as usize);
-        for i in 0..rom.len() {
-            raw_data.push(rom[i]);
+        // Create 16k address space
+        let mut raw_data = Vec::with_capacity(0x10000 as usize);
+        // Set 0s for the first 32k
+        for _ in 0 ..(0x8000 as usize) {
+            raw_data.push(0)
         }
-        println!("DEBUG MEMORY LEN: {:#x}", raw_data.len());
+        // Populate the Mapper 0 rom  at 0x8000
+        for i in 0..rom.len() {
+            raw_data.push(rom[i])
+        }
 
         Memory {
             data: raw_data,
