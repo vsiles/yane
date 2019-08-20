@@ -11,6 +11,8 @@ pub mod load;
 pub mod store;
 pub mod jmp;
 pub mod jsr;
+#[macro_use]
+pub mod branch;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -68,3 +70,9 @@ declare_flags_opcode!(clc, Clc, CLC, carry, false);
 declare_flags_opcode!(cld, Cld, CLD, decimal_mode, false);
 declare_flags_opcode!(cli, Cli, CLI, int_disable, false);
 declare_flags_opcode!(clv, Clv, CLV, overflow, false);
+
+// Branching
+declare_branch!(bcs, Bcs, carry, true, BCS);
+declare_branch!(bcc, Bcc, carry, false, BCC);
+declare_branch!(beq, Beq, zero, true, BEQ);
+declare_branch!(bne, Bne, zero, false, BNE);

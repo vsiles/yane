@@ -70,4 +70,10 @@ impl Memory {
             data: raw_data,
         }
     }
+
+    pub fn dummy() -> Memory {
+        Memory {
+            data: Vec::new(),
+        }
+    }
 }

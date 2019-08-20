@@ -7,12 +7,6 @@ macro_rules! execute_load {
     }};
 }
 
-macro_rules! execute_store {
-    ($reg:ident, $addr:expr, $cpu:ident) => {{
-        $cpu.mem.set($addr, $cpu.$reg)
-    }};
-}
-
 macro_rules! mk_addr {
     ($low:expr, $high:expr) => {
         (($high as u16) << 8) | ($low as u16)

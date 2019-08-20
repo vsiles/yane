@@ -38,6 +38,18 @@ impl Cpu {
         self.pc = self.pc + 1;
         op
     }
+
+    pub fn debug_clone(&self) -> Cpu {
+        Cpu {
+            pc: self.pc,
+            sp: self.sp,
+            A: self.A,
+            X: self.X,
+            Y: self.Y,
+            flags: self.flags.clone(),
+            mem: Memory::dummy(),
+        }
+    }
 }
 
 impl fmt::Display for Cpu {

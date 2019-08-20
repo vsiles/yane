@@ -3,6 +3,7 @@ mod opcode;
 
 use std::fmt;
 
+#[derive(Clone)]
 pub struct CpuFlags {
     pub carry: bool,
     pub zero: bool,

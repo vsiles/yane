@@ -52,6 +52,11 @@ use cpu::cld::Cld;
 use cpu::cli::Cli;
 use cpu::clv::Clv;
 
+use cpu::bcs::Bcs;
+use cpu::bcc::Bcc;
+use cpu::beq::Beq;
+use cpu::bne::Bne;
+
 enum State {
     FetchOpcode,
     Processing,
@@ -59,7 +64,7 @@ enum State {
 }
 
 macro_rules! add_opcode {
-    ($name: ident,$opcode: ident) => {{
+    ($name: ident, $opcode: ident) => {{
         *$opcode = Box::new($name::new());
         State::Processing
     }};
@@ -86,6 +91,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0x8C => add_opcode!(StyAbs, opcode),
                 0x8D => add_opcode!(StaAbs, opcode),
                 0x8E => add_opcode!(StxAbs, opcode),
+                0x90 => add_opcode!(Bcc, opcode),
                 0x91 => add_opcode!(StaIndNdx, opcode),
                 0x94 => add_opcode!(StyZeroPageX, opcode),
                 0x95 => add_opcode!(StaZeroPageX, opcode),
@@ -102,6 +108,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0xAC => add_opcode!(LdyAbs, opcode),
                 0xAD => add_opcode!(LdaAbs, opcode),
                 0xAE => add_opcode!(LdxAbs, opcode),
+                0xB0 => add_opcode!(Bcs, opcode),
                 0xB1 => add_opcode!(LdaIndNdx, opcode),
                 0xB4 => add_opcode!(LdyZeroPageX, opcode),
                 0xB5 => add_opcode!(LdaZeroPageX, opcode),
@@ -111,8 +118,10 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0xBC => add_opcode!(LdyAbsX, opcode),
                 0xBD => add_opcode!(LdaAbsX, opcode),
                 0xBE => add_opcode!(LdxAbsY, opcode),
+                0xD0 => add_opcode!(Bne, opcode),
                 0xD8 => add_opcode!(Cld, opcode),
                 0xEA => add_opcode!(Nop, opcode),
+                0xF0 => add_opcode!(Beq, opcode),
                 0xF8 => add_opcode!(Sed, opcode),
                 _ => {
                     /*TODO deal with errors */
