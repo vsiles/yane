@@ -10,6 +10,7 @@ macro_rules! declare_load_zero_page_reg {
                 addr: u8,
                 imm: u8,
                 state: usize,
+                saved: u8,
             }
 
             impl OpCode for $name {
@@ -18,11 +19,13 @@ macro_rules! declare_load_zero_page_reg {
                         addr: 0,
                         imm: 0,
                         state: 0,
+                        saved: 0,
                     }
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
                     if self.state == 0 {
+                        self.saved = cpu.$reg;
                         // read offset from memory
                         self.addr = cpu.read_from_pc();
                         self.state = 1;
@@ -53,7 +56,9 @@ macro_rules! declare_load_zero_page_reg {
                         payload,
                         stringify!($base)
                     );
-                    println!(" @ {:02X} = {:02X}{: >13}{}", self.addr, self.imm, "", cpu)
+                    let mut old_cpu = cpu.debug_clone();
+                    old_cpu.$reg = self.saved;
+                    println!(" @ {:02X} = {:02X}{: >13}{}", self.addr, self.imm, "", old_cpu)
                 }
             }
         }

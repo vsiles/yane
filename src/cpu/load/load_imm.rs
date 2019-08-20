@@ -8,14 +8,19 @@ macro_rules! declare_load_imm {
 
             pub struct $name {
                 imm: u8,
+                saved: u8,
             }
 
             impl OpCode for $name {
                 fn new() -> $name {
-                    $name { imm: 0 }
+                    $name {
+                        imm: 0,
+                        saved: 0,
+                    }
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
+                    self.saved = cpu.$reg;
                     self.imm = cpu.read_from_pc();
                     execute_load!($reg, self, cpu);
                     true
@@ -33,7 +38,9 @@ macro_rules! declare_load_imm {
                         stringify!($reg),
                         imm
                     );
-                    println!("{: <24}{}", "", cpu)
+                    let mut old_cpu = cpu.debug_clone();
+                    old_cpu.$reg = self.saved;
+                    println!("{: <24}{}", "", old_cpu);
                 }
             }
         }

@@ -11,6 +11,7 @@ macro_rules! declare_load_abs {
                 high: u8,
                 imm: u8,
                 state: usize,
+                saved: u8,
             }
 
             impl OpCode for $name {
@@ -20,11 +21,13 @@ macro_rules! declare_load_abs {
                         high: 0,
                         imm: 0,
                         state: 0,
+                        saved: 0,
                     }
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
                     if self.state == 0 {
+                        self.saved = cpu.$reg;
                         self.low = cpu.read_from_pc();
                         self.state = 1;
                         false
@@ -53,7 +56,9 @@ macro_rules! declare_load_abs {
                         stringify!($reg),
                         addr
                     );
-                    println!(" = {:02X} {: >17}{}", self.imm, "", cpu)
+                    let mut old_cpu = cpu.debug_clone();
+                    old_cpu.$reg = self.saved;
+                    println!(" = {:02X} {: >17}{}", self.imm, "", old_cpu);
                 }
             }
         }
