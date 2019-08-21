@@ -72,7 +72,9 @@ use cpu::bit::bit_zp::BitZp;
 use cpu::and::and_imm::AndImm;
 
 use cpu::php::Php;
+use cpu::pha::Pha;
 use cpu::pla::Pla;
+use cpu::plp::Plp;
 
 enum State {
     FetchOpcode,
@@ -100,10 +102,12 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0x18 => add_opcode!(Clc, opcode),
                 0x20 => add_opcode!(Jsr, opcode),
                 0x24 => add_opcode!(BitZp, opcode),
+                0x28 => add_opcode!(Plp, opcode),
                 0x29 => add_opcode!(AndImm, opcode),
                 0x2c => add_opcode!(BitAbs, opcode),
                 0x30 => add_opcode!(Bmi, opcode),
                 0x38 => add_opcode!(Sec, opcode),
+                0x48 => add_opcode!(Pha, opcode),
                 0x50 => add_opcode!(Bvc, opcode),
                 0x58 => add_opcode!(Cli, opcode),
                 0x60 => add_opcode!(Rts, opcode),

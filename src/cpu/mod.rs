@@ -16,6 +16,7 @@ pub mod rts;
 pub mod branch;
 #[macro_use]
 pub mod cmp;
+pub mod and;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -218,8 +219,6 @@ pub mod bit {
     }
 }
 
-pub mod and;
-
 pub mod php {
     use super::super::Cpu;
     use super::super::OpCode;
@@ -258,6 +257,48 @@ pub mod php {
             let pc = cpu.pc - SIZE;
             let code = cpu.mem.get(pc);
             print!("{:04X}  {:02X}        PHP", pc, code);
+            let mut old_cpu = cpu.debug_clone();
+            old_cpu.sp = old_cpu.sp + 1;
+            println!("{: >29}{}", "", old_cpu)
+        }
+    }
+}
+
+pub mod pha {
+    use super::super::Cpu;
+    use super::super::OpCode;
+
+    const SIZE: u16 = 1;
+
+    pub struct Pha {
+        state: usize,
+    }
+
+    impl OpCode for Pha {
+        fn new() -> Pha {
+            Pha {
+                state: 0,
+            }
+        }
+
+        fn decode(&mut self, cpu: &mut Cpu) -> bool {
+            if self.state == 0 {
+                let _ = cpu.mem.get(cpu.pc);
+                self.state = 1;
+                false
+            } else {
+                let sp = mk_addr!(cpu.sp, 0x10 as usize);
+                cpu.mem.set(sp, cpu.A);
+                let (sp, _) = cpu.sp.overflowing_sub(1);
+                cpu.sp = sp;
+                true
+            }
+        }
+
+        fn log(&self, cpu: &Cpu) {
+            let pc = cpu.pc - SIZE;
+            let code = cpu.mem.get(pc);
+            print!("{:04X}  {:02X}        PHA", pc, code);
             let mut old_cpu = cpu.debug_clone();
             old_cpu.sp = old_cpu.sp + 1;
             println!("{: >29}{}", "", old_cpu)
@@ -317,6 +358,59 @@ pub mod pla {
             let mut old_cpu = cpu.debug_clone();
             old_cpu.sp = old_cpu.sp - 1;
             old_cpu.A = self.old;
+            old_cpu.flags = self.oldf.clone();
+            println!("{: >29}{}", "", old_cpu)
+        }
+    }
+}
+
+pub mod plp {
+    use super::super::Cpu;
+    use super::super::OpCode;
+    use super::super::flags::CpuFlags;
+
+    const SIZE: u16 = 1;
+
+    pub struct Plp {
+        state: usize,
+        oldf: CpuFlags,
+    }
+
+    impl OpCode for Plp {
+        fn new() -> Plp {
+            Plp {
+                state: 0,
+                oldf: CpuFlags::new(),
+            }
+        }
+
+        fn decode(&mut self, cpu: &mut Cpu) -> bool {
+            if self.state == 0 {
+                let _ = cpu.mem.get(cpu.pc);
+                self.state = 1;
+                self.oldf = cpu.flags.clone();
+                false
+            } else if self.state == 1 {
+                let (sp, _) = cpu.sp.overflowing_add(1);
+                cpu.sp = sp;
+                self.state = 2;
+                false
+            } else {
+                let sp = mk_addr!(cpu.sp, 0x10 as usize);
+                // see https://wiki.nesdev.com/w/index.php/Status_flags
+                // with PLP, bit 4 and 5 are always set to one
+                let imm = cpu.mem.get(sp);
+                cpu.flags.update(imm);
+                true
+            }
+        }
+
+        fn log(&self, cpu: &Cpu) {
+            let pc = cpu.pc - SIZE;
+            let code = cpu.mem.get(pc);
+            print!("{:04X}  {:02X}        PLP", pc, code);
+            let mut old_cpu = cpu.debug_clone();
+            old_cpu.sp = old_cpu.sp - 1;
             old_cpu.flags = self.oldf.clone();
             println!("{: >29}{}", "", old_cpu)
         }

@@ -30,6 +30,17 @@ impl CpuFlags {
         }
     }
 
+    pub fn update(&mut self, val: u8) {
+        self.carry = (val & 0x01) != 0;
+        self.zero = (val & 0x02) != 0;
+        self.int_disable = (val & 0x04) != 0;
+        self.decimal_mode = (val & 0x08) != 0;
+        // see https://wiki.nesdev.com/w/index.php/Status_flags
+        // for why we ignore bit 4 and 5
+        self.overflow = (val & 0x40) != 0;
+        self.negative = (val & 0x80) != 0;
+    }
+
     pub fn to_p(&self) -> u8 {
         let mut ret: u8 = 0;
         if self.carry {
