@@ -95,130 +95,128 @@ declare_branch!(bpl, Bpl, negative, false, BPL);
 declare_branch!(bmi, Bmi, negative, true, BMI);
 
 // BIT
-pub mod bit {
-    pub mod bit_abs {
-        use super::super::Cpu;
-        use super::super::flags::CpuFlags;
-        use super::super::OpCode;
+pub mod bit_abs {
+    use super::super::Cpu;
+    use super::super::flags::CpuFlags;
+    use super::super::OpCode;
 
-        const SIZE: u16 = 3;
+    const SIZE: u16 = 3;
 
-        pub struct BitAbs {
-            low: u8,
-            high: u8,
-            imm: u8,
-            state: usize,
-            saved: CpuFlags,
-        }
-
-        impl OpCode for BitAbs {
-            fn new() -> BitAbs {
-                BitAbs {
-                    low: 0,
-                    high: 0,
-                    imm: 0,
-                    state: 0,
-                    saved: CpuFlags::new(),
-                }
-            }
-
-            fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                if self.state == 0 {
-                    self.saved = cpu.flags.clone();
-                    self.low = cpu.read_from_pc();
-                    self.state = 1;
-                    false
-                } else if self.state == 1 {
-                    self.high = cpu.read_from_pc();
-                    self.state = 2;
-                    false
-                } else {
-                    let addr: u16 = mk_addr!(self.low, self.high);
-                    self.imm = cpu.mem.get(addr);
-                    let val = cpu.A & self.imm;
-                    cpu.flags.zero = val == 0;
-                    cpu.flags.overflow = (self.imm & 0x40) != 0;
-                    cpu.flags.negative = (self.imm & 0x80) != 0;
-                    true
-                }
-            }
-
-            fn log(&self, cpu: &Cpu) {
-                let pc = cpu.pc - SIZE;
-                let code = cpu.mem.get(pc);
-                let addr = mk_addr!(self.low, self.high);
-                print!(
-                    "{:04X}  {:02X} {:02X} {:02X}  BIT ${:04X}",
-                    pc,
-                    code,
-                    self.low,
-                    self.high,
-                    addr
-                );
-                let mut old_cpu = cpu.debug_clone();
-                old_cpu.flags = self.saved.clone();
-                println!(" = {:02X} {: >17}{}", self.imm, "", old_cpu);
-            }
-        }
+    pub struct BitAbs {
+        low: u8,
+        high: u8,
+        imm: u8,
+        state: usize,
+        saved: CpuFlags,
     }
 
-    pub mod bit_zp {
-        use super::super::Cpu;
-        use super::super::flags::CpuFlags;
-        use super::super::OpCode;
-
-        const SIZE: u16 = 2;
-
-        pub struct BitZp {
-            addr: u8,
-            imm: u8,
-            state: usize,
-            saved: CpuFlags,
+    impl OpCode for BitAbs {
+        fn new() -> BitAbs {
+            BitAbs {
+                low: 0,
+                high: 0,
+                imm: 0,
+                state: 0,
+                saved: CpuFlags::new(),
+            }
         }
 
-        impl OpCode for BitZp {
-            fn new() -> BitZp {
-                BitZp {
-                    addr: 0,
-                    imm: 0,
-                    state: 0,
-                    saved: CpuFlags::new(),
-                }
+        fn decode(&mut self, cpu: &mut Cpu) -> bool {
+            if self.state == 0 {
+                self.saved = cpu.flags.clone();
+                self.low = cpu.read_from_pc();
+                self.state = 1;
+                false
+            } else if self.state == 1 {
+                self.high = cpu.read_from_pc();
+                self.state = 2;
+                false
+            } else {
+                let addr: u16 = mk_addr!(self.low, self.high);
+                self.imm = cpu.mem.get(addr);
+                let val = cpu.A & self.imm;
+                cpu.flags.zero = val == 0;
+                cpu.flags.overflow = (self.imm & 0x40) != 0;
+                cpu.flags.negative = (self.imm & 0x80) != 0;
+                true
             }
+        }
 
-            fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                if self.state == 0 {
-                    self.saved = cpu.flags.clone();
-                    // read offset from memory
-                    self.addr = cpu.read_from_pc();
-                    self.state = 1;
-                    false
-                } else {
-                    // read data from memory using offset in page 0
-                    self.imm = cpu.mem.get(self.addr as u16);
-                    let val = cpu.A & self.imm;
-                    cpu.flags.zero = val == 0;
-                    cpu.flags.overflow = (self.imm & 0x40) != 0;
-                    cpu.flags.negative = (self.imm & 0x80) != 0;
-                    true
-                }
-            }
+        fn log(&self, cpu: &Cpu) {
+            let pc = cpu.pc - SIZE;
+            let code = cpu.mem.get(pc);
+            let addr = mk_addr!(self.low, self.high);
+            print!(
+                "{:04X}  {:02X} {:02X} {:02X}  BIT ${:04X}",
+                pc,
+                code,
+                self.low,
+                self.high,
+                addr
+            );
+            let mut old_cpu = cpu.debug_clone();
+            old_cpu.flags = self.saved.clone();
+            println!(" = {:02X} {: >17}{}", self.imm, "", old_cpu);
+        }
+    }
+}
 
-            fn log(&self, cpu: &Cpu) {
-                let pc = cpu.pc - SIZE;
-                let code = cpu.mem.get(pc);
-                let payload = cpu.mem.get(pc + 1);
-                print!(
-                    "{:04X}  {:02X} {:02X}     BIT ${:02X}",
-                    pc,
-                    code,
-                    payload,
-                    self.addr
-                );
-                let mut old_cpu = cpu.debug_clone();
-                old_cpu.flags = self.saved.clone();
-                println!(" = {:02X}{: >20}{}", self.imm, "", old_cpu)
+pub mod bit_zp {
+    use super::super::Cpu;
+    use super::super::flags::CpuFlags;
+    use super::super::OpCode;
+
+    const SIZE: u16 = 2;
+
+    pub struct BitZp {
+        addr: u8,
+        imm: u8,
+        state: usize,
+        saved: CpuFlags,
+    }
+
+    impl OpCode for BitZp {
+        fn new() -> BitZp {
+            BitZp {
+                addr: 0,
+                imm: 0,
+                state: 0,
+                saved: CpuFlags::new(),
             }
+        }
+
+        fn decode(&mut self, cpu: &mut Cpu) -> bool {
+            if self.state == 0 {
+                self.saved = cpu.flags.clone();
+                // read offset from memory
+                self.addr = cpu.read_from_pc();
+                self.state = 1;
+                false
+            } else {
+                // read data from memory using offset in page 0
+                self.imm = cpu.mem.get(self.addr as u16);
+                let val = cpu.A & self.imm;
+                cpu.flags.zero = val == 0;
+                cpu.flags.overflow = (self.imm & 0x40) != 0;
+                cpu.flags.negative = (self.imm & 0x80) != 0;
+                true
+            }
+        }
+
+        fn log(&self, cpu: &Cpu) {
+            let pc = cpu.pc - SIZE;
+            let code = cpu.mem.get(pc);
+            let payload = cpu.mem.get(pc + 1);
+            print!(
+                "{:04X}  {:02X} {:02X}     BIT ${:02X}",
+                pc,
+                code,
+                payload,
+                self.addr
+            );
+            let mut old_cpu = cpu.debug_clone();
+            old_cpu.flags = self.saved.clone();
+            println!(" = {:02X}{: >20}{}", self.imm, "", old_cpu)
         }
     }
 }

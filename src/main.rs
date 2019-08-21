@@ -66,8 +66,8 @@ use cpu::bvc::Bvc;
 use cpu::bpl::Bpl;
 use cpu::bmi::Bmi;
 
-use cpu::bit::bit_abs::BitAbs;
-use cpu::bit::bit_zp::BitZp;
+use cpu::bit_abs::BitAbs;
+use cpu::bit_zp::BitZp;
 
 use cpu::and::and_imm::AndImm;
 use cpu::ora::ora_imm::OraImm;
