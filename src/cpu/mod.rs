@@ -20,6 +20,7 @@ pub mod and;
 pub mod ora;
 pub mod eor;
 pub mod adc;
+pub mod sbc;
 
 pub use cpu::*;
 pub use opcode::OpCode;
