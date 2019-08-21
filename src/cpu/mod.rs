@@ -14,9 +14,16 @@ pub mod jsr;
 pub mod rts;
 #[macro_use]
 pub mod branch;
+#[macro_use]
+pub mod cmp;
 
 pub use cpu::*;
 pub use opcode::OpCode;
+
+// CMP, CMX, CMY
+declare_cmp_imm!(cmp_imm, CmpImm, A);
+declare_cmp_imm!(cpx_imm, CpxImm, X);
+declare_cmp_imm!(cpy_imm, CpyImm, Y);
 
 // LDA, LDX, LDY
 declare_load_imm!(lda_imm, LdaImm, A);

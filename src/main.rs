@@ -7,6 +7,10 @@ mod format;
 mod memory;
 use memory::Memory;
 
+use cpu::cmp_imm::CmpImm;
+use cpu::cpx_imm::CpxImm;
+use cpu::cpy_imm::CpyImm;
+
 use cpu::lda_abs::LdaAbs;
 use cpu::lda_abs_x::LdaAbsX;
 use cpu::lda_abs_y::LdaAbsY;
@@ -141,8 +145,11 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0xBC => add_opcode!(LdyAbsX, opcode),
                 0xBD => add_opcode!(LdaAbsX, opcode),
                 0xBE => add_opcode!(LdxAbsY, opcode),
+                0xC0 => add_opcode!(CpyImm, opcode),
+                0xC9 => add_opcode!(CmpImm, opcode),
                 0xD0 => add_opcode!(Bne, opcode),
                 0xD8 => add_opcode!(Cld, opcode),
+                0xE0 => add_opcode!(CpxImm, opcode),
                 0xEA => add_opcode!(Nop, opcode),
                 0xF0 => add_opcode!(Beq, opcode),
                 0xF8 => add_opcode!(Sed, opcode),
