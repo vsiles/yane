@@ -72,6 +72,7 @@ use cpu::bit::bit_zp::BitZp;
 use cpu::and::and_imm::AndImm;
 use cpu::ora::ora_imm::OraImm;
 use cpu::eor::eor_imm::EorImm;
+use cpu::adc::adc_imm::AdcImm;
 
 use cpu::php::Php;
 use cpu::pha::Pha;
@@ -117,6 +118,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0x58 => add_opcode!(Cli, opcode),
                 0x60 => add_opcode!(Rts, opcode),
                 0x68 => add_opcode!(Pla, opcode),
+                0x69 => add_opcode!(AdcImm, opcode),
                 0x70 => add_opcode!(Bvs, opcode),
                 0x78 => add_opcode!(Sei, opcode),
                 0x81 => add_opcode!(StaNdxInd, opcode),

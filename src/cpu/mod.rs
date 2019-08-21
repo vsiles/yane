@@ -19,14 +19,15 @@ pub mod cmp;
 pub mod and;
 pub mod ora;
 pub mod eor;
+pub mod adc;
 
 pub use cpu::*;
 pub use opcode::OpCode;
 
 // CMP, CMX, CMY
-declare_cmp_imm!(cmp_imm, CmpImm, A);
-declare_cmp_imm!(cpx_imm, CpxImm, X);
-declare_cmp_imm!(cpy_imm, CpyImm, Y);
+declare_cmp_imm!(cmp_imm, CmpImm, CMP, A);
+declare_cmp_imm!(cpx_imm, CpxImm, CPX, X);
+declare_cmp_imm!(cpy_imm, CpyImm, CPY, Y);
 
 // LDA, LDX, LDY
 declare_load_imm!(lda_imm, LdaImm, A);
