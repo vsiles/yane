@@ -58,7 +58,7 @@ macro_rules! declare_load_zero_page_reg {
                     );
                     let mut old_cpu = cpu.debug_clone();
                     old_cpu.$reg = self.saved;
-                    println!(" @ {:02X} = {:02X}{: >13}{}", self.addr, self.imm, "", old_cpu)
+                    print!(" @ {:02X} = {:02X}{: >13}{}", self.addr, self.imm, "", old_cpu)
                 }
             }
         }

@@ -29,7 +29,7 @@ macro_rules! declare_flags_opcode {
                     print!("{:04X}  {:02X}        {}", pc, code, stringify!($fname));
                     let mut old_cpu = cpu.debug_clone();
                     old_cpu.flags = self.oldf.clone();
-                    println!("{: >29}{}", "", old_cpu)
+                    print!("{: >29}{}", "", old_cpu)
                 }
             }
         }

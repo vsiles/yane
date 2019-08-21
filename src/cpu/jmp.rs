@@ -41,6 +41,6 @@ impl OpCode for Jmp {
             "{:04X}  {:02X} {:02X} {:02X}  JMP ${:04X}",
             pc, code, self.low, self.high, addr
         );
-        println!("{: >23}{}", "", cpu)
+        print!("{: >23}{}", "", cpu)
     }
 }

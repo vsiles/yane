@@ -42,7 +42,7 @@ macro_rules! declare_incr {
                     let mut old_cpu = cpu.debug_clone();
                     old_cpu.$reg = self.saved;
                     old_cpu.flags = self.oldf.clone();
-                    println!("{: <29}{}", "", old_cpu);
+                    print!("{: <29}{}", "", old_cpu);
                 }
             }
         }

@@ -9,6 +9,6 @@ pub trait OpCode {
         Self: Sized;
     // log info
     fn log(&self, cpu: &Cpu) {
-        println!("{:04X}", cpu.pc)
+        print!("{:04X}", cpu.pc)
     }
 }

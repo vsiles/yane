@@ -78,7 +78,7 @@ macro_rules! declare_load_abs_reg {
                     );
                     let mut old_cpu = cpu.debug_clone();
                     old_cpu.$reg = self.saved;
-                    println!(" @ {:04X} = {:02X} {: >8}{}", addr, self.imm, "", old_cpu)
+                    print!(" @ {:04X} = {:02X} {: >8}{}", addr, self.imm, "", old_cpu)
                 }
             }
         }

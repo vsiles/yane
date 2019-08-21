@@ -18,6 +18,6 @@ impl OpCode for Sec {
         let pc: usize = (cpu.pc as usize) - SIZE;
         let code = cpu.mem[pc];
         print!("{:04X}  {:02X}        SEC", pc, code);
-        println!("{: >29}{}", "", cpu)
+        print!("{: >29}{}", "", cpu)
     }
 }

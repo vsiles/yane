@@ -60,7 +60,7 @@ macro_rules! declare_branch {
                         stringify!($mnemo),
                         addr
                     );
-                    println!("{: <23}{}", "", cpu)
+                    print!("{: <23}{}", "", cpu)
                 }
             }
         }

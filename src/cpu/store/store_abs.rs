@@ -53,7 +53,7 @@ macro_rules! declare_store_abs {
                         stringify!($reg),
                         addr
                     );
-                    println!(" = {:02X} {: >17}{}", self.saved, "", cpu)
+                    print!(" = {:02X} {: >17}{}", self.saved, "", cpu)
                 }
             }
         }

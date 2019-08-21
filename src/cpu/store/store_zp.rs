@@ -46,7 +46,7 @@ macro_rules! declare_store_zero_page {
                         stringify!($reg),
                         self.addr
                     );
-                    println!(" = {:02X} {: >19}{}", self.saved, "", cpu)
+                    print!(" = {:02X} {: >19}{}", self.saved, "", cpu)
                 }
             }
         }

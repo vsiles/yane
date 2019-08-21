@@ -68,7 +68,7 @@ macro_rules! declare_store_abs_reg {
                         stringify!($reg),
                         base
                     );
-                    println!(
+                    print!(
                         ",{} @ {:04X} = {:02X} {: >8}{}",
                         stringify!($base),
                         addr,

@@ -98,11 +98,13 @@ macro_rules! add_opcode {
     }};
 }
 
-fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usize) -> State {
+fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, 
+         start_cycle: &mut usize, nr: &mut usize) -> State {
     // print!("> [CYCLE {:04} PC {:#04x}]", *nr, cpu.pc);
     *nr = *nr + 1;
     match state {
         State::FetchOpcode => {
+            *start_cycle = *nr - 1;
             let op = cpu.read_from_pc();
             // println!("Fetching Opcode {:02x}", op);
             match op {
@@ -184,6 +186,9 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
             // println!("Processing");
             if opcode.decode(cpu) {
                 opcode.log(cpu);
+                let ppu_cycle = *start_cycle * 3;
+                let frame_nr = ppu_cycle / 334;
+                println!(" PPU:{: >3}, {: >2} CYC:{}", ppu_cycle, frame_nr, *start_cycle + 7);
                 State::FetchOpcode
             } else {
                 State::Processing
@@ -236,11 +241,12 @@ fn main() {
     let mut opcode: Box<dyn OpCode> = Box::new(Nop::new());
     let mut state = State::FetchOpcode;
     let mut nr = 0;
+    let mut start_cycle = 0;
 
     let start = SystemTime::now();
 
     loop {
-        state = cycle(&mut cpu, &mut opcode, state, &mut nr);
+        state = cycle(&mut cpu, &mut opcode, state, &mut start_cycle, &mut nr);
         match state {
             // State::Done => cpu.pc = 0,
             State::Done => break,

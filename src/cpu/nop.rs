@@ -17,6 +17,6 @@ impl OpCode for Nop {
         let pc = cpu.pc - SIZE;
         let code = cpu.mem.get(pc);
         print!("{:04X}  {:02X}        NOP", pc, code);
-        println!("{: >29}{}", "", cpu)
+        print!("{: >29}{}", "", cpu)
     }
 }

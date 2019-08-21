@@ -45,7 +45,7 @@ macro_rules! declare_load_imm {
                     let mut old_cpu = cpu.debug_clone();
                     old_cpu.$reg = self.saved;
                     old_cpu.flags = self.oldf.clone();
-                    println!("{: <24}{}", "", old_cpu);
+                    print!("{: <24}{}", "", old_cpu);
                 }
             }
         }

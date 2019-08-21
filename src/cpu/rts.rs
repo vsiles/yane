@@ -65,6 +65,6 @@ impl OpCode for Rts {
         print!("{:04X}  {:02X}        RTS", pc, code);
         let mut old_cpu = cpu.debug_clone();
         old_cpu.sp = self.old_sp;
-        println!("{: >29}{}", "", old_cpu)
+        print!("{: >29}{}", "", old_cpu)
     }
 }

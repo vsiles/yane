@@ -52,7 +52,7 @@ macro_rules! declare_load_zero_page {
                     );
                     let mut old_cpu = cpu.debug_clone();
                     old_cpu.$reg = self.saved;
-                    println!(" = {:02X}{: >20}{}", self.imm, "", old_cpu)
+                    print!(" = {:02X}{: >20}{}", self.imm, "", old_cpu)
                 }
             }
         }

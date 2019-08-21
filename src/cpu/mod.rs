@@ -166,7 +166,7 @@ pub mod bit_abs {
             );
             let mut old_cpu = cpu.debug_clone();
             old_cpu.flags = self.saved.clone();
-            println!(" = {:02X} {: >17}{}", self.imm, "", old_cpu);
+            print!(" = {:02X} {: >17}{}", self.imm, "", old_cpu);
         }
     }
 }
@@ -226,7 +226,7 @@ pub mod bit_zp {
             );
             let mut old_cpu = cpu.debug_clone();
             old_cpu.flags = self.saved.clone();
-            println!(" = {:02X}{: >20}{}", self.imm, "", old_cpu)
+            print!(" = {:02X}{: >20}{}", self.imm, "", old_cpu)
         }
     }
 }
@@ -271,7 +271,7 @@ pub mod php {
             print!("{:04X}  {:02X}        PHP", pc, code);
             let mut old_cpu = cpu.debug_clone();
             old_cpu.sp = old_cpu.sp + 1;
-            println!("{: >29}{}", "", old_cpu)
+            print!("{: >29}{}", "", old_cpu)
         }
     }
 }
@@ -313,7 +313,7 @@ pub mod pha {
             print!("{:04X}  {:02X}        PHA", pc, code);
             let mut old_cpu = cpu.debug_clone();
             old_cpu.sp = old_cpu.sp + 1;
-            println!("{: >29}{}", "", old_cpu)
+            print!("{: >29}{}", "", old_cpu)
         }
     }
 }
@@ -371,7 +371,7 @@ pub mod pla {
             old_cpu.sp = old_cpu.sp - 1;
             old_cpu.A = self.old;
             old_cpu.flags = self.oldf.clone();
-            println!("{: >29}{}", "", old_cpu)
+            print!("{: >29}{}", "", old_cpu)
         }
     }
 }
@@ -424,7 +424,7 @@ pub mod plp {
             let mut old_cpu = cpu.debug_clone();
             old_cpu.sp = old_cpu.sp - 1;
             old_cpu.flags = self.oldf.clone();
-            println!("{: >29}{}", "", old_cpu)
+            print!("{: >29}{}", "", old_cpu)
         }
     }
 }

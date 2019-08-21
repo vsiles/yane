@@ -80,7 +80,7 @@ macro_rules! declare_load_ind_ndx {
                     );
                     let mut old_cpu = cpu.debug_clone();
                     old_cpu.$reg = self.saved;
-                    println!(
+                    print!(
                         " = {:04X} @ {:04X} = {:02X} {: >1}{}",
                         addr,
                         addr - (cpu.Y as u16),
