@@ -17,6 +17,8 @@ pub mod branch;
 #[macro_use]
 pub mod cmp;
 pub mod and;
+pub mod ora;
+pub mod eor;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -133,8 +135,8 @@ pub mod bit {
                     self.imm = cpu.mem.get(addr);
                     let val = cpu.A & self.imm;
                     cpu.flags.zero = val == 0;
-                    cpu.flags.overflow = (val & 0x40) != 0;
-                    cpu.flags.negative = (val & 0x80) != 0;
+                    cpu.flags.overflow = (self.imm & 0x40) != 0;
+                    cpu.flags.negative = (self.imm & 0x80) != 0;
                     true
                 }
             }
@@ -194,8 +196,8 @@ pub mod bit {
                     self.imm = cpu.mem.get(self.addr as u16);
                     let val = cpu.A & self.imm;
                     cpu.flags.zero = val == 0;
-                    cpu.flags.overflow = (val & 0x40) != 0;
-                    cpu.flags.negative = (val & 0x80) != 0;
+                    cpu.flags.overflow = (self.imm & 0x40) != 0;
+                    cpu.flags.negative = (self.imm & 0x80) != 0;
                     true
                 }
             }

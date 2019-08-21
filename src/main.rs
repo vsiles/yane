@@ -70,6 +70,8 @@ use cpu::bit::bit_abs::BitAbs;
 use cpu::bit::bit_zp::BitZp;
 
 use cpu::and::and_imm::AndImm;
+use cpu::ora::ora_imm::OraImm;
+use cpu::eor::eor_imm::EorImm;
 
 use cpu::php::Php;
 use cpu::pha::Pha;
@@ -98,6 +100,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
             // println!("Fetching Opcode {:02x}", op);
             match op {
                 0x08 => add_opcode!(Php, opcode),
+                0x09 => add_opcode!(OraImm, opcode),
                 0x10 => add_opcode!(Bpl, opcode),
                 0x18 => add_opcode!(Clc, opcode),
                 0x20 => add_opcode!(Jsr, opcode),
@@ -108,13 +111,14 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0x30 => add_opcode!(Bmi, opcode),
                 0x38 => add_opcode!(Sec, opcode),
                 0x48 => add_opcode!(Pha, opcode),
+                0x49 => add_opcode!(EorImm, opcode),
+                0x4C => add_opcode!(Jmp, opcode),
                 0x50 => add_opcode!(Bvc, opcode),
                 0x58 => add_opcode!(Cli, opcode),
                 0x60 => add_opcode!(Rts, opcode),
                 0x68 => add_opcode!(Pla, opcode),
                 0x70 => add_opcode!(Bvs, opcode),
                 0x78 => add_opcode!(Sei, opcode),
-                0x4C => add_opcode!(Jmp, opcode),
                 0x81 => add_opcode!(StaNdxInd, opcode),
                 0x84 => add_opcode!(StyZeroPage, opcode),
                 0x85 => add_opcode!(StaZeroPage, opcode),

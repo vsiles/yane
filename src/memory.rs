@@ -51,6 +51,7 @@ impl Memory {
         if !rw {
             panic!("Trying to write {:#x} to RO address {:#x}", val, addr);
         }
+        // println!("DEBUG setting {:#X} to {:#X}", pos, val);
         self.data[pos] = val
     }
 
