@@ -28,7 +28,7 @@ pub mod sbc_imm {
             let (val0, _) = a.overflowing_sub(imm);
             let (val, _) = val0.overflowing_sub(if cpu.flags.carry { 0 } else { 1 });
             let res = (a as i32) - (imm as i32) - (if cpu.flags.carry { 0 } else { 1 });
-            cpu.flags.overflow = ((a ^ val) & (imm ^ val) & 0x80) == 0x80;
+            cpu.flags.overflow = ((a ^ val) & (a ^ imm) & 0x80) == 0x80;
             cpu.flags.carry = res >= 0;
             cpu.flags.zero = val == 0;
             cpu.flags.negative = (val & 0x80) == 0x80;

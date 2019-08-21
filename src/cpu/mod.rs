@@ -21,9 +21,15 @@ pub mod ora;
 pub mod eor;
 pub mod adc;
 pub mod sbc;
+#[macro_use]
+pub mod incr;
 
 pub use cpu::*;
 pub use opcode::OpCode;
+
+// INX, INY
+declare_incr!(inx, InX, X);
+declare_incr!(iny, InY, Y);
 
 // CMP, CMX, CMY
 declare_cmp_imm!(cmp_imm, CmpImm, CMP, A);
