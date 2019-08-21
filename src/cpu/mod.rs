@@ -211,8 +211,7 @@ pub mod bit {
     }
 }
 
-pub use bit::bit_abs;
-pub use bit::bit_zp;
+pub mod and;
 
 pub mod php {
     use super::super::Cpu;

@@ -65,6 +65,8 @@ use cpu::bmi::Bmi;
 use cpu::bit::bit_abs::BitAbs;
 use cpu::bit::bit_zp::BitZp;
 
+use cpu::and::and_imm::AndImm;
+
 use cpu::php::Php;
 use cpu::pla::Pla;
 
@@ -94,6 +96,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0x18 => add_opcode!(Clc, opcode),
                 0x20 => add_opcode!(Jsr, opcode),
                 0x24 => add_opcode!(BitZp, opcode),
+                0x29 => add_opcode!(AndImm, opcode),
                 0x2c => add_opcode!(BitAbs, opcode),
                 0x30 => add_opcode!(Bmi, opcode),
                 0x38 => add_opcode!(Sec, opcode),
