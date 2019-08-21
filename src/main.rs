@@ -9,6 +9,8 @@ use memory::Memory;
 
 use cpu::inx::InX;
 use cpu::iny::InY;
+use cpu::dex::DeX;
+use cpu::dey::DeY;
 
 use cpu::cmp_imm::CmpImm;
 use cpu::cpx_imm::CpxImm;
@@ -129,6 +131,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0x84 => add_opcode!(StyZeroPage, opcode),
                 0x85 => add_opcode!(StaZeroPage, opcode),
                 0x86 => add_opcode!(StxZeroPage, opcode),
+                0x88 => add_opcode!(DeY, opcode),
                 0x8C => add_opcode!(StyAbs, opcode),
                 0x8D => add_opcode!(StaAbs, opcode),
                 0x8E => add_opcode!(StxAbs, opcode),
@@ -162,6 +165,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0xC0 => add_opcode!(CpyImm, opcode),
                 0xC8 => add_opcode!(InY, opcode),
                 0xC9 => add_opcode!(CmpImm, opcode),
+                0xCA => add_opcode!(DeX, opcode),
                 0xD0 => add_opcode!(Bne, opcode),
                 0xD8 => add_opcode!(Cld, opcode),
                 0xE0 => add_opcode!(CpxImm, opcode),

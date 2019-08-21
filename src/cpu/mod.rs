@@ -23,13 +23,17 @@ pub mod adc;
 pub mod sbc;
 #[macro_use]
 pub mod incr;
+#[macro_use]
+pub mod decr;
 
 pub use cpu::*;
 pub use opcode::OpCode;
 
-// INX, INY
+// INX, INY, DEX, DEY
 declare_incr!(inx, InX, X);
 declare_incr!(iny, InY, Y);
+declare_decr!(dex, DeX, X);
+declare_decr!(dey, DeY, Y);
 
 // CMP, CMX, CMY
 declare_cmp_imm!(cmp_imm, CmpImm, CMP, A);
