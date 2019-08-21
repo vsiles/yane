@@ -9,6 +9,7 @@ pub struct Rts {
     low: u8,
     high: u8,
     old: u16,
+    old_sp: u8,
 }
 
 impl OpCode for Rts {
@@ -18,6 +19,7 @@ impl OpCode for Rts {
             low: 0,
             high: 0,
             old: 0,
+            old_sp: 0,
         }
     }
 
@@ -25,6 +27,7 @@ impl OpCode for Rts {
         if self.state == 0 {
             // 2    PC     R  read next instruction byte (and throw it away)
             self.old = cpu.pc;
+            self.old_sp = cpu.sp;
             let _ = cpu.mem.get(cpu.pc);
             self.state = 1;
             false
@@ -60,6 +63,8 @@ impl OpCode for Rts {
         let pc = self.old - SIZE;
         let code = cpu.mem.get(pc);
         print!("{:04X}  {:02X}        RTS", pc, code);
-        println!("{: >29}{}", "", cpu)
+        let mut old_cpu = cpu.debug_clone();
+        old_cpu.sp = self.old_sp;
+        println!("{: >29}{}", "", old_cpu)
     }
 }

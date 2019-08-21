@@ -70,6 +70,6 @@ impl OpCode for Jsr {
         );
         let mut old_cpu = cpu.debug_clone();
         old_cpu.sp = old_cpu.sp + 2;
-        println!("{: >23}{}", "", old_cpu);
+        println!("{: >23}{}", "", old_cpu)
     }
 }

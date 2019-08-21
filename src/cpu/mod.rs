@@ -213,3 +213,106 @@ pub mod bit {
 
 pub use bit::bit_abs;
 pub use bit::bit_zp;
+
+pub mod php {
+    use super::super::Cpu;
+    use super::super::OpCode;
+
+    const SIZE: u16 = 1;
+
+    pub struct Php {
+        state: usize,
+    }
+
+    impl OpCode for Php {
+        fn new() -> Php {
+            Php {
+                state: 0,
+            }
+        }
+
+        fn decode(&mut self, cpu: &mut Cpu) -> bool {
+            if self.state == 0 {
+                let _ = cpu.mem.get(cpu.pc);
+                self.state = 1;
+                false
+            } else {
+                let sp = mk_addr!(cpu.sp, 0x10 as usize);
+                // see https://wiki.nesdev.com/w/index.php/Status_flags
+                // with PHP, bit 4 and 5 are always set to one
+                let val = cpu.flags.to_p() | 0x30;
+                cpu.mem.set(sp, val);
+                let (sp, _) = cpu.sp.overflowing_sub(1);
+                cpu.sp = sp;
+                true
+            }
+        }
+
+        fn log(&self, cpu: &Cpu) {
+            let pc = cpu.pc - SIZE;
+            let code = cpu.mem.get(pc);
+            print!("{:04X}  {:02X}        PHP", pc, code);
+            let mut old_cpu = cpu.debug_clone();
+            old_cpu.sp = old_cpu.sp + 1;
+            println!("{: >29}{}", "", old_cpu)
+        }
+    }
+}
+
+pub mod pla {
+    use super::super::Cpu;
+    use super::super::OpCode;
+    use super::super::flags::CpuFlags;
+
+    const SIZE: u16 = 1;
+
+    pub struct Pla {
+        state: usize,
+        old: u8,
+        oldf: CpuFlags,
+    }
+
+    impl OpCode for Pla {
+        fn new() -> Pla {
+            Pla {
+                state: 0,
+                old: 0,
+                oldf: CpuFlags::new(),
+            }
+        }
+
+        fn decode(&mut self, cpu: &mut Cpu) -> bool {
+            if self.state == 0 {
+                let _ = cpu.mem.get(cpu.pc);
+                self.state = 1;
+                self.old = cpu.A;
+                self.oldf = cpu.flags.clone();
+                false
+            } else if self.state == 1 {
+                let (sp, _) = cpu.sp.overflowing_add(1);
+                cpu.sp = sp;
+                self.state = 2;
+                false
+            } else {
+                let sp = mk_addr!(cpu.sp, 0x10 as usize);
+                // see https://wiki.nesdev.com/w/index.php/Status_flags
+                // with PHP, bit 4 and 5 are always set to one
+                cpu.A = cpu.mem.get(sp);
+                cpu.flags.zero = cpu.A == 0;
+                cpu.flags.negative = (cpu.A & 0x80) != 0;
+                true
+            }
+        }
+
+        fn log(&self, cpu: &Cpu) {
+            let pc = cpu.pc - SIZE;
+            let code = cpu.mem.get(pc);
+            print!("{:04X}  {:02X}        PLA", pc, code);
+            let mut old_cpu = cpu.debug_clone();
+            old_cpu.sp = old_cpu.sp - 1;
+            old_cpu.A = self.old;
+            old_cpu.flags = self.oldf.clone();
+            println!("{: >29}{}", "", old_cpu)
+        }
+    }
+}

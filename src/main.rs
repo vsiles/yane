@@ -65,6 +65,9 @@ use cpu::bmi::Bmi;
 use cpu::bit::bit_abs::BitAbs;
 use cpu::bit::bit_zp::BitZp;
 
+use cpu::php::Php;
+use cpu::pla::Pla;
+
 enum State {
     FetchOpcode,
     Processing,
@@ -86,6 +89,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
             let op = cpu.read_from_pc();
             // println!("Fetching Opcode {:02x}", op);
             match op {
+                0x08 => add_opcode!(Php, opcode),
                 0x10 => add_opcode!(Bpl, opcode),
                 0x18 => add_opcode!(Clc, opcode),
                 0x20 => add_opcode!(Jsr, opcode),
@@ -96,6 +100,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, nr: &mut usi
                 0x50 => add_opcode!(Bvc, opcode),
                 0x58 => add_opcode!(Cli, opcode),
                 0x60 => add_opcode!(Rts, opcode),
+                0x68 => add_opcode!(Pla, opcode),
                 0x70 => add_opcode!(Bvs, opcode),
                 0x78 => add_opcode!(Sei, opcode),
                 0x4C => add_opcode!(Jmp, opcode),
