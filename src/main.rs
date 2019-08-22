@@ -60,6 +60,7 @@ use cpu::sty_zero_page_x::StyZeroPageX;
 use cpu::jmp::Jmp;
 use cpu::jsr::Jsr;
 use cpu::rts::Rts;
+use cpu::rti::Rti;
 use cpu::nop::Nop;
 use cpu::sec::Sec;
 use cpu::sed::Sed;
@@ -131,6 +132,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State,
                 0x2c => add_opcode!(BitAbs, opcode, cpu),
                 0x30 => add_opcode!(Bmi, opcode, cpu),
                 0x38 => add_opcode!(Sec, opcode, cpu),
+                0x40 => add_opcode!(Rti, opcode, cpu),
                 0x48 => add_opcode!(Pha, opcode, cpu),
                 0x49 => add_opcode!(EorImm, opcode, cpu),
                 0x4C => add_opcode!(Jmp, opcode, cpu),

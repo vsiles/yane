@@ -27,6 +27,7 @@ pub mod incr;
 pub mod decr;
 #[macro_use]
 pub mod trs;
+pub mod rti;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -445,7 +446,6 @@ pub mod plp {
             } else {
                 let sp = mk_addr!(cpu.sp, 0x01 as usize);
                 // see https://wiki.nesdev.com/w/index.php/Status_flags
-                // with PLP, bit 4 and 5 are always set to one
                 let imm = cpu.mem.get(sp);
                 cpu.flags.update(imm);
                 true
