@@ -315,13 +315,10 @@ pub mod php {
                 self.state = 1;
                 false
             } else {
-                let sp = mk_addr!(cpu.sp, 0x01 as usize);
                 // see https://wiki.nesdev.com/w/index.php/Status_flags
                 // with PHP, bit 4 and 5 are always set to one
                 let val = cpu.flags.to_p() | 0x30;
-                cpu.mem.set(sp, val);
-                let (sp, _) = cpu.sp.overflowing_sub(1);
-                cpu.sp = sp;
+                push!(cpu, val);
                 true
             }
         }
@@ -356,10 +353,7 @@ pub mod pha {
                 self.state = 1;
                 false
             } else {
-                let sp = mk_addr!(cpu.sp, 0x01 as usize);
-                cpu.mem.set(sp, cpu.A);
-                let (sp, _) = cpu.sp.overflowing_sub(1);
-                cpu.sp = sp;
+                push!(cpu, cpu.A);
                 true
             }
         }

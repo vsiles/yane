@@ -29,20 +29,14 @@ impl OpCode for Jsr {
             false
         } else if self.state == 2 {
             // 4  $0100,S  W  push PCH on stack, decrement S
-            let sp: u16 = mk_addr!(cpu.sp, 0x01);
             let val = (cpu.pc >> 8) & 0xFF;
-            cpu.mem.set(sp, val as u8);
-            let (sp, _) = cpu.sp.overflowing_sub(1);
-            cpu.sp = sp;
+            push!(cpu, val);
             self.state = 3;
             false
         } else if self.state == 3 {
             // 5  $0100,S  W  push PCL on stack, decrement S
-            let sp: u16 = mk_addr!(cpu.sp, 0x01);
             let val = cpu.pc & 0xFF;
-            cpu.mem.set(sp, val as u8);
-            let (sp, _) = cpu.sp.overflowing_sub(1);
-            cpu.sp = sp;
+            push!(cpu, val);
             self.state = 4;
             false
         } else {
