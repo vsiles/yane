@@ -1,8 +1,6 @@
 use super::cpu::Cpu;
 use super::opcode::OpCode;
 
-const SIZE: u16 = 1;
-
 pub struct Nop {}
 
 impl OpCode for Nop {
@@ -14,7 +12,7 @@ impl OpCode for Nop {
         true
     }
     fn log(&self, cpu: &Cpu) {
-        let pc = cpu.pc - SIZE;
+        let pc = cpu.pc - 1;
         let code = cpu.mem.get(pc);
         print!("{:04X}  {:02X}        NOP", pc, code);
         print!("{: >29}{}", "", cpu)

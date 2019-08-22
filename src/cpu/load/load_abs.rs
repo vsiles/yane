@@ -4,14 +4,11 @@ macro_rules! declare_load_abs {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE: u16 = 3;
-
             pub struct $name {
                 low: u8,
                 high: u8,
                 imm: u8,
                 state: usize,
-                saved: u8,
             }
 
             impl OpCode for $name {
@@ -21,13 +18,11 @@ macro_rules! declare_load_abs {
                         high: 0,
                         imm: 0,
                         state: 0,
-                        saved: 0,
                     }
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
                     if self.state == 0 {
-                        self.saved = cpu.$reg;
                         self.low = cpu.read_from_pc();
                         self.state = 1;
                         false
@@ -44,21 +39,22 @@ macro_rules! declare_load_abs {
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = cpu.pc - SIZE;
+                    let pc = cpu.pc - 1;
                     let code = cpu.mem.get(pc);
-                    let addr = mk_addr!(self.low, self.high);
+                    let low = cpu.mem.get(pc + 1);
+                    let high = cpu.mem.get(pc + 2);
+                    let addr = mk_addr!(low, high);
+                    let val = cpu.mem.get(addr); 
                     print!(
                         "{:04X}  {:02X} {:02X} {:02X}  LD{} ${:04X}",
                         pc,
                         code,
-                        self.low,
-                        self.high,
+                        low,
+                        high,
                         stringify!($reg),
                         addr
                     );
-                    let mut old_cpu = cpu.debug_clone();
-                    old_cpu.$reg = self.saved;
-                    print!(" = {:02X} {: >17}{}", self.imm, "", old_cpu);
+                    print!(" = {:02X} {: >17}{}", val, "", cpu)
                 }
             }
         }

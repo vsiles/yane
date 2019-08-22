@@ -2,27 +2,16 @@
 pub mod sbc_imm {
     use super::super::Cpu;
     use super::super::OpCode;
-    use super::super::flags::CpuFlags;
 
-    const SIZE: u16 = 2;
-
-    pub struct SbcImm {
-        saved: u8,
-        oldf: CpuFlags,
-    }
+    pub struct SbcImm {}
 
     impl OpCode for SbcImm {
         fn new() -> SbcImm {
-            SbcImm {
-                saved: 0,
-                oldf: CpuFlags::new(),
-            }
+            SbcImm {}
         }
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
             // https://stackoverflow.com/questions/29193303/6502-emulation-proper-way-to-implement-adc-and-sbc
-            self.oldf = cpu.flags.clone();
-            self.saved = cpu.A;
             let imm : u8 = cpu.read_from_pc();
             let a : u8 = cpu.A;
             let (val0, _) = a.overflowing_sub(imm);
@@ -37,7 +26,7 @@ pub mod sbc_imm {
         }
 
         fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - SIZE;
+            let pc = cpu.pc - 1;
             let code = cpu.mem.get(pc);
             let imm = cpu.mem.get(pc + 1);
             print!(
@@ -47,10 +36,7 @@ pub mod sbc_imm {
                 imm,
                 imm
             );
-            let mut old_cpu = cpu.debug_clone();
-            old_cpu.A = self.saved;
-            old_cpu.flags = self.oldf.clone();
-            print!("{: <24}{}", "", old_cpu);
+            print!("{: <24}{}", "", cpu)
         }
     }
 }

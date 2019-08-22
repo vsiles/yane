@@ -4,12 +4,9 @@ macro_rules! declare_store_zero_page {
             use super::Cpu;
             use super::OpCode;
 
-            const SIZE: u16 = 2;
-
             pub struct $name {
                 addr: u8,
                 state: usize,
-                saved: u8,
             }
 
             impl OpCode for $name {
@@ -17,7 +14,6 @@ macro_rules! declare_store_zero_page {
                     $name {
                         addr: 0,
                         state: 0,
-                        saved: 0,
                     }
                 }
 
@@ -29,24 +25,25 @@ macro_rules! declare_store_zero_page {
                         false
                     } else {
                         let addr = self.addr as u16;
-                        self.saved = cpu.mem.get(addr);
                         cpu.mem.set(addr, cpu.$reg);
                         true
                     }
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = cpu.pc - SIZE;
+                    let pc = cpu.pc - 1;
                     let code = cpu.mem.get(pc);
+                    let addr = cpu.mem.get(pc + 1);
+                    let old = cpu.mem.get(addr as u16);
                     print!(
                         "{:04X}  {:02X} {:02X}     ST{} ${:02X}",
                         pc,
                         code,
-                        self.addr,
+                        addr,
                         stringify!($reg),
-                        self.addr
+                       addr 
                     );
-                    print!(" = {:02X} {: >19}{}", self.saved, "", cpu)
+                    print!(" = {:02X} {: >19}{}", old, "", cpu)
                 }
             }
         }

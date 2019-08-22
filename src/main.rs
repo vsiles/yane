@@ -7,6 +7,13 @@ mod format;
 mod memory;
 use memory::Memory;
 
+use cpu::tax::TAX;
+use cpu::tay::TAY;
+use cpu::txa::TXA;
+use cpu::tya::TYA;
+use cpu::txs::TXS;
+use cpu::tsx::TSX;
+
 use cpu::inx::InX;
 use cpu::iny::InY;
 use cpu::dex::DeX;
@@ -92,8 +99,13 @@ enum State {
 }
 
 macro_rules! add_opcode {
-    ($name: ident, $opcode: ident) => {{
+    ($name: ident, $opcode: ident, $cpu: ident) => {{
         *$opcode = Box::new($name::new());
+        $opcode.log($cpu);
+        println!("");
+        // let ppu_cycle = *start_cycle * 3;
+        // let frame_nr = ppu_cycle / 334;
+        // println!(" PPU:{: >3}, {: >2} CYC:{}", ppu_cycle, frame_nr, *start_cycle + 7);
         State::Processing
     }};
 }
@@ -108,74 +120,80 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State,
             let op = cpu.read_from_pc();
             // println!("Fetching Opcode {:02x}", op);
             match op {
-                0x08 => add_opcode!(Php, opcode),
-                0x09 => add_opcode!(OraImm, opcode),
-                0x10 => add_opcode!(Bpl, opcode),
-                0x18 => add_opcode!(Clc, opcode),
-                0x20 => add_opcode!(Jsr, opcode),
-                0x24 => add_opcode!(BitZp, opcode),
-                0x28 => add_opcode!(Plp, opcode),
-                0x29 => add_opcode!(AndImm, opcode),
-                0x2c => add_opcode!(BitAbs, opcode),
-                0x30 => add_opcode!(Bmi, opcode),
-                0x38 => add_opcode!(Sec, opcode),
-                0x48 => add_opcode!(Pha, opcode),
-                0x49 => add_opcode!(EorImm, opcode),
-                0x4C => add_opcode!(Jmp, opcode),
-                0x50 => add_opcode!(Bvc, opcode),
-                0x58 => add_opcode!(Cli, opcode),
-                0x60 => add_opcode!(Rts, opcode),
-                0x68 => add_opcode!(Pla, opcode),
-                0x69 => add_opcode!(AdcImm, opcode),
-                0x70 => add_opcode!(Bvs, opcode),
-                0x78 => add_opcode!(Sei, opcode),
-                0x81 => add_opcode!(StaNdxInd, opcode),
-                0x84 => add_opcode!(StyZeroPage, opcode),
-                0x85 => add_opcode!(StaZeroPage, opcode),
-                0x86 => add_opcode!(StxZeroPage, opcode),
-                0x88 => add_opcode!(DeY, opcode),
-                0x8C => add_opcode!(StyAbs, opcode),
-                0x8D => add_opcode!(StaAbs, opcode),
-                0x8E => add_opcode!(StxAbs, opcode),
-                0x90 => add_opcode!(Bcc, opcode),
-                0x91 => add_opcode!(StaIndNdx, opcode),
-                0x94 => add_opcode!(StyZeroPageX, opcode),
-                0x95 => add_opcode!(StaZeroPageX, opcode),
-                0x96 => add_opcode!(StxZeroPageY, opcode),
-                0x99 => add_opcode!(StaAbsY, opcode),
-                0x9D => add_opcode!(StaAbsX, opcode),
-                0xA0 => add_opcode!(LdyImm, opcode),
-                0xA1 => add_opcode!(LdaNdxInd, opcode),
-                0xA2 => add_opcode!(LdxImm, opcode),
-                0xA4 => add_opcode!(LdyZeroPage, opcode),
-                0xA5 => add_opcode!(LdaZeroPage, opcode),
-                0xA6 => add_opcode!(LdxZeroPage, opcode),
-                0xA9 => add_opcode!(LdaImm, opcode),
-                0xAC => add_opcode!(LdyAbs, opcode),
-                0xAD => add_opcode!(LdaAbs, opcode),
-                0xAE => add_opcode!(LdxAbs, opcode),
-                0xB0 => add_opcode!(Bcs, opcode),
-                0xB1 => add_opcode!(LdaIndNdx, opcode),
-                0xB4 => add_opcode!(LdyZeroPageX, opcode),
-                0xB5 => add_opcode!(LdaZeroPageX, opcode),
-                0xB6 => add_opcode!(LdxZeroPageY, opcode),
-                0xB8 => add_opcode!(Clv, opcode),
-                0xB9 => add_opcode!(LdaAbsY, opcode),
-                0xBC => add_opcode!(LdyAbsX, opcode),
-                0xBD => add_opcode!(LdaAbsX, opcode),
-                0xBE => add_opcode!(LdxAbsY, opcode),
-                0xC0 => add_opcode!(CpyImm, opcode),
-                0xC8 => add_opcode!(InY, opcode),
-                0xC9 => add_opcode!(CmpImm, opcode),
-                0xCA => add_opcode!(DeX, opcode),
-                0xD0 => add_opcode!(Bne, opcode),
-                0xD8 => add_opcode!(Cld, opcode),
-                0xE0 => add_opcode!(CpxImm, opcode),
-                0xE8 => add_opcode!(InX, opcode),
-                0xE9 => add_opcode!(SbcImm, opcode),
-                0xEA => add_opcode!(Nop, opcode),
-                0xF0 => add_opcode!(Beq, opcode),
-                0xF8 => add_opcode!(Sed, opcode),
+                0x08 => add_opcode!(Php, opcode, cpu),
+                0x09 => add_opcode!(OraImm, opcode, cpu),
+                0x10 => add_opcode!(Bpl, opcode, cpu),
+                0x18 => add_opcode!(Clc, opcode, cpu),
+                0x20 => add_opcode!(Jsr, opcode, cpu),
+                0x24 => add_opcode!(BitZp, opcode, cpu),
+                0x28 => add_opcode!(Plp, opcode, cpu),
+                0x29 => add_opcode!(AndImm, opcode, cpu),
+                0x2c => add_opcode!(BitAbs, opcode, cpu),
+                0x30 => add_opcode!(Bmi, opcode, cpu),
+                0x38 => add_opcode!(Sec, opcode, cpu),
+                0x48 => add_opcode!(Pha, opcode, cpu),
+                0x49 => add_opcode!(EorImm, opcode, cpu),
+                0x4C => add_opcode!(Jmp, opcode, cpu),
+                0x50 => add_opcode!(Bvc, opcode, cpu),
+                0x58 => add_opcode!(Cli, opcode, cpu),
+                0x60 => add_opcode!(Rts, opcode, cpu),
+                0x68 => add_opcode!(Pla, opcode, cpu),
+                0x69 => add_opcode!(AdcImm, opcode, cpu),
+                0x70 => add_opcode!(Bvs, opcode, cpu),
+                0x78 => add_opcode!(Sei, opcode, cpu),
+                0x81 => add_opcode!(StaNdxInd, opcode, cpu),
+                0x84 => add_opcode!(StyZeroPage, opcode, cpu),
+                0x85 => add_opcode!(StaZeroPage, opcode, cpu),
+                0x86 => add_opcode!(StxZeroPage, opcode, cpu),
+                0x88 => add_opcode!(DeY, opcode, cpu),
+                0x8A => add_opcode!(TXA, opcode, cpu),
+                0x8C => add_opcode!(StyAbs, opcode, cpu),
+                0x8D => add_opcode!(StaAbs, opcode, cpu),
+                0x8E => add_opcode!(StxAbs, opcode, cpu),
+                0x90 => add_opcode!(Bcc, opcode, cpu),
+                0x91 => add_opcode!(StaIndNdx, opcode, cpu),
+                0x94 => add_opcode!(StyZeroPageX, opcode, cpu),
+                0x95 => add_opcode!(StaZeroPageX, opcode, cpu),
+                0x96 => add_opcode!(StxZeroPageY, opcode, cpu),
+                0x98 => add_opcode!(TYA, opcode, cpu),
+                0x99 => add_opcode!(StaAbsY, opcode, cpu),
+                0x9A => add_opcode!(TXS, opcode, cpu),
+                0x9D => add_opcode!(StaAbsX, opcode, cpu),
+                0xA0 => add_opcode!(LdyImm, opcode, cpu),
+                0xA1 => add_opcode!(LdaNdxInd, opcode, cpu),
+                0xA2 => add_opcode!(LdxImm, opcode, cpu),
+                0xA4 => add_opcode!(LdyZeroPage, opcode, cpu),
+                0xA5 => add_opcode!(LdaZeroPage, opcode, cpu),
+                0xA6 => add_opcode!(LdxZeroPage, opcode, cpu),
+                0xA8 => add_opcode!(TAY, opcode, cpu),
+                0xA9 => add_opcode!(LdaImm, opcode, cpu),
+                0xAA => add_opcode!(TAX, opcode, cpu),
+                0xAC => add_opcode!(LdyAbs, opcode, cpu),
+                0xAD => add_opcode!(LdaAbs, opcode, cpu),
+                0xAE => add_opcode!(LdxAbs, opcode, cpu),
+                0xB0 => add_opcode!(Bcs, opcode, cpu),
+                0xB1 => add_opcode!(LdaIndNdx, opcode, cpu),
+                0xB4 => add_opcode!(LdyZeroPageX, opcode, cpu),
+                0xB5 => add_opcode!(LdaZeroPageX, opcode, cpu),
+                0xB6 => add_opcode!(LdxZeroPageY, opcode, cpu),
+                0xB8 => add_opcode!(Clv, opcode, cpu),
+                0xB9 => add_opcode!(LdaAbsY, opcode, cpu),
+                0xBA => add_opcode!(TSX, opcode, cpu),
+                0xBC => add_opcode!(LdyAbsX, opcode, cpu),
+                0xBD => add_opcode!(LdaAbsX, opcode, cpu),
+                0xBE => add_opcode!(LdxAbsY, opcode, cpu),
+                0xC0 => add_opcode!(CpyImm, opcode, cpu),
+                0xC8 => add_opcode!(InY, opcode, cpu),
+                0xC9 => add_opcode!(CmpImm, opcode, cpu),
+                0xCA => add_opcode!(DeX, opcode, cpu),
+                0xD0 => add_opcode!(Bne, opcode, cpu),
+                0xD8 => add_opcode!(Cld, opcode, cpu),
+                0xE0 => add_opcode!(CpxImm, opcode, cpu),
+                0xE8 => add_opcode!(InX, opcode, cpu),
+                0xE9 => add_opcode!(SbcImm, opcode, cpu),
+                0xEA => add_opcode!(Nop, opcode, cpu),
+                0xF0 => add_opcode!(Beq, opcode, cpu),
+                0xF8 => add_opcode!(Sed, opcode, cpu),
                 _ => {
                     /*TODO deal with errors */
                     State::Done
@@ -185,10 +203,6 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State,
         State::Processing => {
             // println!("Processing");
             if opcode.decode(cpu) {
-                opcode.log(cpu);
-                let ppu_cycle = *start_cycle * 3;
-                let frame_nr = ppu_cycle / 334;
-                println!(" PPU:{: >3}, {: >2} CYC:{}", ppu_cycle, frame_nr, *start_cycle + 7);
                 State::FetchOpcode
             } else {
                 State::Processing

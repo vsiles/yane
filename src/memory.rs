@@ -43,7 +43,9 @@ fn get_addr(addr: u16) -> (usize, bool) {
 
 impl Memory {
     pub fn get(&self, addr: u16) -> u8 {
-        return self.data[get_addr(addr).0]
+        let real_addr = get_addr(addr);
+        // println!("DEBUG reading at {:#X} (which is {:#X})", addr, real_addr.0);
+        return self.data[real_addr.0]
     }
 
     pub fn set(&mut self, addr: u16, val: u8) {

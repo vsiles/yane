@@ -1,5 +1,6 @@
-macro_rules! declare_load_imm {
-    ($mod:ident, $name:ident, $reg:ident) => {
+
+macro_rules! declare_transfert {
+    ($mod:ident, $name:ident, $from:ident, $to:ident) => {
         pub mod $mod {
             use super::Cpu;
             use super::OpCode;
@@ -16,24 +17,22 @@ macro_rules! declare_load_imm {
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                    self.imm = cpu.read_from_pc();
-                    execute_load!($reg, self, cpu);
+                    self.imm = cpu.$from;
+                    execute_load!($to, self, cpu);
                     true
                 }
 
                 fn log(&self, cpu: &Cpu) {
                     let pc = cpu.pc - 1;
                     let code = cpu.mem.get(pc);
-                    let imm = cpu.mem.get(pc + 1);
                     print!(
-                        "{:04X}  {:02X} {:02X}     LD{} #${:02X}",
+                        "{:04X}  {:02X}        T{}{}",
                         pc,
                         code,
-                        imm,
-                        stringify!($reg),
-                        imm
+                        stringify!($from),
+                        stringify!($to)
                     );
-                    print!("{: <24}{}", "", cpu);
+                    print!("{: <29}{}", "", cpu)
                 }
             }
         }

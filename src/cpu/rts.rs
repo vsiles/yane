@@ -2,14 +2,10 @@
 use super::Cpu;
 use super::OpCode;
 
-const SIZE: u16 = 1;
-
 pub struct Rts {
     state: usize,
     low: u8,
     high: u8,
-    old: u16,
-    old_sp: u8,
 }
 
 impl OpCode for Rts {
@@ -18,16 +14,12 @@ impl OpCode for Rts {
             state: 0,
             low: 0,
             high: 0,
-            old: 0,
-            old_sp: 0,
         }
     }
 
     fn decode(&mut self, cpu: &mut Cpu) -> bool {
         if self.state == 0 {
             // 2    PC     R  read next instruction byte (and throw it away)
-            self.old = cpu.pc;
-            self.old_sp = cpu.sp;
             let _ = cpu.mem.get(cpu.pc);
             self.state = 1;
             false
@@ -39,7 +31,7 @@ impl OpCode for Rts {
             false
         } else if self.state == 2 {
             // 4  $0100,S  R  pull PCL from stack, increment S
-            let sp: u16 = 0x1000 + cpu.sp as u16;
+            let sp: u16 = mk_addr!(cpu.sp, 0x01);
             self.low = cpu.mem.get(sp);
             let (sp, _) = cpu.sp.overflowing_add(1);
             cpu.sp = sp;
@@ -47,7 +39,7 @@ impl OpCode for Rts {
             false
         } else if self.state == 3 {
             // 5  $0100,S  R  pull PCH from stack
-            let sp: u16 = 0x1000 + cpu.sp as u16;
+            let sp: u16 = mk_addr!(cpu.sp, 0x01);
             self.high = cpu.mem.get(sp);
             self.state = 4;
             false
@@ -60,11 +52,9 @@ impl OpCode for Rts {
     }
 
     fn log(&self, cpu: &Cpu) {
-        let pc = self.old - SIZE;
+        let pc = cpu.pc - 1;
         let code = cpu.mem.get(pc);
         print!("{:04X}  {:02X}        RTS", pc, code);
-        let mut old_cpu = cpu.debug_clone();
-        old_cpu.sp = self.old_sp;
-        print!("{: >29}{}", "", old_cpu)
+        print!("{: >29}{}", "", cpu)
     }
 }

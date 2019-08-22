@@ -3,23 +3,15 @@ macro_rules! declare_cmp_imm {
         pub mod $mod {
             use super::Cpu;
             use super::OpCode;
-            use super::flags::CpuFlags;
 
-            const SIZE: u16 = 2;
-
-            pub struct $name {
-                oldf: CpuFlags,
-            }
+            pub struct $name {}
 
             impl OpCode for $name {
                 fn new() -> $name {
-                    $name {
-                        oldf: CpuFlags::new(),
-                    }
+                    $name {}
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                    self.oldf = cpu.flags.clone();
                     let imm = cpu.read_from_pc();
                     let (res, _) = cpu.$reg.overflowing_sub(imm);
                     cpu.flags.carry = cpu.$reg >= imm;
@@ -29,7 +21,7 @@ macro_rules! declare_cmp_imm {
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = cpu.pc - SIZE;
+                    let pc = cpu.pc - 1;
                     let code = cpu.mem.get(pc);
                     let imm = cpu.mem.get(pc + 1);
                     print!(
@@ -40,9 +32,7 @@ macro_rules! declare_cmp_imm {
                         stringify!($mnemo),
                         imm
                     );
-                    let mut old_cpu = cpu.debug_clone();
-                    old_cpu.flags = self.oldf.clone();
-                    print!("{: <24}{}", "", old_cpu);
+                    print!("{: <24}{}", "", cpu)
                 }
             }
         }

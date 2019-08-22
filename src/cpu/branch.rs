@@ -8,7 +8,6 @@ macro_rules! declare_branch {
 
             pub struct $name {
                 imm: u8,
-                old: u16,
                 state: usize,
                 carry: bool,
             }
@@ -17,7 +16,6 @@ macro_rules! declare_branch {
                 fn new() -> $name {
                     $name {
                         imm: 0,
-                        old: 0,
                         state: 0,
                         carry: false,
                     }
@@ -25,7 +23,6 @@ macro_rules! declare_branch {
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
                     if self.state == 0 {
-                        self.old = cpu.pc;
                         self.imm = cpu.read_from_pc();
                         self.state = self.state + 1;
                         false
@@ -48,10 +45,10 @@ macro_rules! declare_branch {
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = self.old - 1;
+                    let pc = cpu.pc - 1;
                     let code = cpu.mem.get(pc);
-                    let imm = self.imm;
-                    let addr = (pc as usize) + 2 + (self.imm as usize);
+                    let imm = cpu.mem.get(pc + 1);
+                    let addr = (pc as usize) + 2 + (imm as usize);
                     print!(
                         "{:04X}  {:02X} {:02X}     {} ${:04X}",
                         pc,

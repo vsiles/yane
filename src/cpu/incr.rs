@@ -3,26 +3,15 @@ macro_rules! declare_incr {
         pub mod $mod {
             use super::Cpu;
             use super::OpCode;
-            use super::flags::CpuFlags;
 
-            const SIZE: u16 = 1;
-
-            pub struct $name {
-                saved: u8,
-                oldf: CpuFlags,
-            }
+            pub struct $name {}
 
             impl OpCode for $name {
                 fn new() -> $name {
-                    $name {
-                        saved: 0,
-                        oldf: CpuFlags::new(),
-                    }
+                    $name {}
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                    self.oldf = cpu.flags.clone();
-                    self.saved = cpu.$reg;
                     let val = cpu.$reg.overflowing_add(1);
                     cpu.$reg = val.0;
                     cpu.flags.zero = cpu.$reg == 0;
@@ -31,7 +20,7 @@ macro_rules! declare_incr {
                 }
 
                 fn log(&self, cpu: &Cpu) {
-                    let pc = cpu.pc - SIZE;
+                    let pc = cpu.pc - 1;
                     let code = cpu.mem.get(pc);
                     print!(
                         "{:04X}  {:02X}        IN{}",
@@ -39,10 +28,7 @@ macro_rules! declare_incr {
                         code,
                         stringify!($reg)
                     );
-                    let mut old_cpu = cpu.debug_clone();
-                    old_cpu.$reg = self.saved;
-                    old_cpu.flags = self.oldf.clone();
-                    print!("{: <29}{}", "", old_cpu);
+                    print!("{: <29}{}", "", cpu)
                 }
             }
         }
