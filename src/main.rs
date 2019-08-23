@@ -22,6 +22,7 @@ use cpu::iny::InY;
 use cpu::cmp_imm::CmpImm;
 use cpu::cpx_imm::CpxImm;
 use cpu::cpy_imm::CpyImm;
+use cpu::cmp::CmpNdxInd;
 
 use cpu::lda_abs::LdaAbs;
 use cpu::lda_abs_x::LdaAbsX;
@@ -90,7 +91,8 @@ use cpu::eor_imm::EorImm;
 use cpu::eor_ndx_ind::EorNdxInd;
 use cpu::ora_imm::OraImm;
 use cpu::ora_ndx_ind::OraNdxInd;
-use cpu::sbc::sbc_imm::SbcImm;
+use cpu::sbc::SbcImm;
+use cpu::sbc::SbcNdxInd;
 
 use cpu::pha::Pha;
 use cpu::php::Php;
@@ -207,12 +209,14 @@ fn cycle(
                 0xBD => add_opcode!(LdaAbsX, opcode, cpu),
                 0xBE => add_opcode!(LdxAbsY, opcode, cpu),
                 0xC0 => add_opcode!(CpyImm, opcode, cpu),
+                0xC1 => add_opcode!(CmpNdxInd, opcode, cpu),
                 0xC8 => add_opcode!(InY, opcode, cpu),
                 0xC9 => add_opcode!(CmpImm, opcode, cpu),
                 0xCA => add_opcode!(DeX, opcode, cpu),
                 0xD0 => add_opcode!(Bne, opcode, cpu),
                 0xD8 => add_opcode!(Cld, opcode, cpu),
                 0xE0 => add_opcode!(CpxImm, opcode, cpu),
+                0xE1 => add_opcode!(SbcNdxInd, opcode, cpu),
                 0xE8 => add_opcode!(InX, opcode, cpu),
                 0xE9 => add_opcode!(SbcImm, opcode, cpu),
                 0xEA => add_opcode!(Nop, opcode, cpu),
