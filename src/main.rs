@@ -95,6 +95,7 @@ use cpu::plp::Plp;
 
 use cpu::asl::asl_a::AslA;
 use cpu::lsr::lsr_a::LsrA;
+use cpu::rol::rol_a::RolA;
 use cpu::ror::ror_a::RorA;
 
 enum State {
@@ -139,6 +140,7 @@ fn cycle(
                 0x24 => add_opcode!(BitZp, opcode, cpu),
                 0x28 => add_opcode!(Plp, opcode, cpu),
                 0x29 => add_opcode!(AndImm, opcode, cpu),
+                0x2A => add_opcode!(RolA, opcode, cpu),
                 0x2c => add_opcode!(BitAbs, opcode, cpu),
                 0x30 => add_opcode!(Bmi, opcode, cpu),
                 0x38 => add_opcode!(Sec, opcode, cpu),
