@@ -84,8 +84,10 @@ use cpu::bit_zp::BitZp;
 
 use cpu::adc::adc_imm::AdcImm;
 use cpu::and::and_imm::AndImm;
+use cpu::and::and_ndx_ind::AndNdxInd;
 use cpu::eor::eor_imm::EorImm;
 use cpu::ora::ora_imm::OraImm;
+use cpu::ora::ora_ndx_ind::OraNdxInd;
 use cpu::sbc::sbc_imm::SbcImm;
 
 use cpu::pha::Pha;
@@ -131,12 +133,14 @@ fn cycle(
             let op = cpu.read_from_pc();
             // println!("Fetching Opcode {:02x}", op);
             match op {
+                0x01 => add_opcode!(OraNdxInd, opcode, cpu),
                 0x08 => add_opcode!(Php, opcode, cpu),
                 0x09 => add_opcode!(OraImm, opcode, cpu),
                 0x0A => add_opcode!(AslA, opcode, cpu),
                 0x10 => add_opcode!(Bpl, opcode, cpu),
                 0x18 => add_opcode!(Clc, opcode, cpu),
                 0x20 => add_opcode!(Jsr, opcode, cpu),
+                0x21 => add_opcode!(AndNdxInd, opcode, cpu),
                 0x24 => add_opcode!(BitZp, opcode, cpu),
                 0x28 => add_opcode!(Plp, opcode, cpu),
                 0x29 => add_opcode!(AndImm, opcode, cpu),
