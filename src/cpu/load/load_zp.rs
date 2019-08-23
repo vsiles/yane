@@ -32,7 +32,6 @@ macro_rules! declare_load_zero_page {
                     let pc = cpu.pc - 1;
                     let code = cpu.mem.get(pc);
                     let payload = cpu.mem.get(pc + 1);
-                    let imm = cpu.mem.get(pc + 2);
                     print!(
                         "{:04X}  {:02X} {:02X}     LD{} ${:02X}",
                         pc,
@@ -41,6 +40,7 @@ macro_rules! declare_load_zero_page {
                         stringify!($reg),
                         payload
                     );
+                    let imm = cpu.mem.get(payload as u16);
                     print!(" = {:02X}{: >20}{}", imm, "", cpu)
                 }
             }

@@ -9,7 +9,6 @@ macro_rules! declare_load_ndx_ind {
                 high: u8,
                 addr: u8,
                 state: usize,
-                saved: u8,
             }
 
             impl OpCode for $name {
@@ -19,13 +18,11 @@ macro_rules! declare_load_ndx_ind {
                         high: 0,
                         addr: 0,
                         state: 0,
-                        saved: 0,
                     }
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
                     if self.state == 0 {
-                        self.saved = cpu.$reg;
                         // read offset from memory
                         self.addr = cpu.read_from_pc();
                         self.state = 1;
@@ -36,7 +33,7 @@ macro_rules! declare_load_ndx_ind {
                         false
                     } else if self.state == 2 {
                         self.low = cpu.mem.get(self.addr as u16);
-                        self.addr = self.addr + 1;
+                        self.addr = self.addr.overflowing_add(1).0;
                         self.state = 3;
                         false
                     } else if self.state == 3 {
@@ -51,30 +48,25 @@ macro_rules! declare_load_ndx_ind {
                     }
                 }
 
-                fn log(&self, _cpu: &Cpu) {
-                    print!("TODO LOAD NDX IND")
-                    // let pc = cpu.pc - SIZE;
-                    // let code = cpu.mem.get(pc);
-                    // let payload = cpu.mem.get(pc + 1 - SIZE);
-                    // let addr: u16 = mk_addr!(self.low, self.high);
-                    // print!(
-                    //     "{:04X}  {:02X} {:02X}     LD{} (${:02X},X)",
-                    //     pc,
-                    //     code,
-                    //     payload,
-                    //     stringify!($reg),
-                    //     payload
-                    // );
-                    // let mut old_cpu = cpu.debug_clone();
-                    // old_cpu.$reg = self.saved;
-                    // print!(
-                    //     " @ {:02X} = {:04X} = {:02X} {: >3}{}",
-                    //     self.addr - 1,
-                    //     addr,
-                    //     self.imm,
-                    //     "",
-                    //     old_cpu
-                    // )
+                fn log(&self, cpu: &Cpu) {
+                    let pc = cpu.pc - 1;
+                    let code = cpu.mem.get(pc);
+                    let payload = cpu.mem.get(pc + 1);
+                    let addr = payload.overflowing_add(cpu.X).0;
+                    let low = cpu.mem.get(addr as u16);
+                    let high = cpu.mem.get(addr.overflowing_add(1).0 as u16);
+                    let faddr = mk_addr!(low, high);
+                    let imm = cpu.mem.get(faddr);
+
+                    print!(
+                        "{:04X}  {:02X} {:02X}     LD{} (${:02X},X)",
+                        pc,
+                        code,
+                        payload,
+                        stringify!($reg),
+                        payload
+                    );
+                    print!(" @ {:02X} = {:04X} = {:02X} {: >3}{}", addr, faddr, imm, "", cpu)
                 }
             }
         }
