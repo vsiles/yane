@@ -28,7 +28,7 @@ use cpu::lda_abs_x::LdaAbsX;
 use cpu::lda_abs_y::LdaAbsY;
 use cpu::lda_imm::LdaImm;
 use cpu::lda_ind_ndx::LdaIndNdx;
-use cpu::lda_ndx_ind::LdaNdxInd;
+use cpu::load::load_ndx_ind::LdaNdxInd;
 use cpu::lda_zero_page::LdaZeroPage;
 use cpu::lda_zero_page_x::LdaZeroPageX;
 use cpu::ldx_abs::LdxAbs;
@@ -83,11 +83,13 @@ use cpu::bit_abs::BitAbs;
 use cpu::bit_zp::BitZp;
 
 use cpu::adc::adc_imm::AdcImm;
-use cpu::and::and_imm::AndImm;
-use cpu::and::and_ndx_ind::AndNdxInd;
-use cpu::eor::eor_imm::EorImm;
-use cpu::ora::ora_imm::OraImm;
-use cpu::ora::ora_ndx_ind::OraNdxInd;
+use cpu::adc::adc_ndx_ind::AdcNdxInd;
+use cpu::and_imm::AndImm;
+use cpu::and_ndx_ind::AndNdxInd;
+use cpu::eor_imm::EorImm;
+use cpu::eor_ndx_ind::EorNdxInd;
+use cpu::ora_imm::OraImm;
+use cpu::ora_ndx_ind::OraNdxInd;
 use cpu::sbc::sbc_imm::SbcImm;
 
 use cpu::pha::Pha;
@@ -149,6 +151,7 @@ fn cycle(
                 0x30 => add_opcode!(Bmi, opcode, cpu),
                 0x38 => add_opcode!(Sec, opcode, cpu),
                 0x40 => add_opcode!(Rti, opcode, cpu),
+                0x41 => add_opcode!(EorNdxInd, opcode, cpu),
                 0x48 => add_opcode!(Pha, opcode, cpu),
                 0x49 => add_opcode!(EorImm, opcode, cpu),
                 0x4A => add_opcode!(LsrA, opcode, cpu),
@@ -156,6 +159,7 @@ fn cycle(
                 0x50 => add_opcode!(Bvc, opcode, cpu),
                 0x58 => add_opcode!(Cli, opcode, cpu),
                 0x60 => add_opcode!(Rts, opcode, cpu),
+                0x61 => add_opcode!(AdcNdxInd, opcode, cpu),
                 0x68 => add_opcode!(Pla, opcode, cpu),
                 0x69 => add_opcode!(AdcImm, opcode, cpu),
                 0x6A => add_opcode!(RorA, opcode, cpu),

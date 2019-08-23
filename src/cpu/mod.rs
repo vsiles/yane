@@ -17,9 +17,6 @@ pub mod branch;
 #[macro_use]
 pub mod cmp;
 pub mod adc;
-pub mod and;
-pub mod eor;
-pub mod ora;
 pub mod sbc;
 #[macro_use]
 pub mod incr;
@@ -32,9 +29,21 @@ pub mod lsr;
 pub mod rol;
 pub mod ror;
 pub mod rti;
+#[macro_use]
+pub mod bin_ndx_ind;
+#[macro_use]
+pub mod bin_imm;
 
 pub use cpu::*;
 pub use opcode::OpCode;
+
+// ORA, AND, EOR
+declare_bin_imm!(ora_imm, OraImm, A, ORA, |x, y| {x | y});
+declare_bin_imm!(and_imm, AndImm, A, AND, |x, y| {x & y});
+declare_bin_imm!(eor_imm, EorImm, A, EOR, |x, y| {x ^ y});
+declare_bin_ndx_ind!(ora_ndx_ind, OraNdxInd, A, ORA, |x, y| { x | y });
+declare_bin_ndx_ind!(and_ndx_ind, AndNdxInd, A, AND, |x, y| { x & y });
+declare_bin_ndx_ind!(eor_ndx_ind, EorNdxInd, A, EOR, |x, y| { x ^ y });
 
 // TAX, TAY, TSX, TXA, TXS, TYA
 declare_transfert!(tax, TAX, A, X);
@@ -126,7 +135,6 @@ declare_load_abs_reg!(lda_abs_y, LdaAbsY, A, Y);
 declare_load_abs_reg!(ldx_abs_y, LdxAbsY, X, Y);
 declare_load_abs_reg!(ldy_abs_x, LdyAbsX, Y, X);
 
-declare_load_ndx_ind!(lda_ndx_ind, LdaNdxInd, A);
 declare_load_ind_ndx!(lda_ind_ndx, LdaIndNdx, A);
 
 // STA, STX, STY
