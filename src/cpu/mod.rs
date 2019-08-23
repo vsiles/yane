@@ -28,6 +28,9 @@ pub mod decr;
 #[macro_use]
 pub mod trs;
 pub mod rti;
+pub mod lsr;
+pub mod asl;
+pub mod ror;
 
 pub use cpu::*;
 pub use opcode::OpCode;

@@ -93,6 +93,10 @@ use cpu::pha::Pha;
 use cpu::pla::Pla;
 use cpu::plp::Plp;
 
+use cpu::lsr::lsr_a::LsrA;
+use cpu::asl::asl_a::AslA;
+use cpu::ror::ror_a::RorA;
+
 enum State {
     FetchOpcode,
     Processing,
@@ -123,6 +127,7 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State,
             match op {
                 0x08 => add_opcode!(Php, opcode, cpu),
                 0x09 => add_opcode!(OraImm, opcode, cpu),
+                0x0A => add_opcode!(AslA, opcode, cpu),
                 0x10 => add_opcode!(Bpl, opcode, cpu),
                 0x18 => add_opcode!(Clc, opcode, cpu),
                 0x20 => add_opcode!(Jsr, opcode, cpu),
@@ -135,12 +140,14 @@ fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State,
                 0x40 => add_opcode!(Rti, opcode, cpu),
                 0x48 => add_opcode!(Pha, opcode, cpu),
                 0x49 => add_opcode!(EorImm, opcode, cpu),
+                0x4A => add_opcode!(LsrA, opcode, cpu),
                 0x4C => add_opcode!(Jmp, opcode, cpu),
                 0x50 => add_opcode!(Bvc, opcode, cpu),
                 0x58 => add_opcode!(Cli, opcode, cpu),
                 0x60 => add_opcode!(Rts, opcode, cpu),
                 0x68 => add_opcode!(Pla, opcode, cpu),
                 0x69 => add_opcode!(AdcImm, opcode, cpu),
+                0x6A => add_opcode!(RorA, opcode, cpu),
                 0x70 => add_opcode!(Bvs, opcode, cpu),
                 0x78 => add_opcode!(Sei, opcode, cpu),
                 0x81 => add_opcode!(StaNdxInd, opcode, cpu),
