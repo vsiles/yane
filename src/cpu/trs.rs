@@ -5,20 +5,16 @@ macro_rules! declare_transfert {
             use super::Cpu;
             use super::OpCode;
 
-            pub struct $name {
-                imm: u8,
-            }
+            pub struct $name {}
 
             impl OpCode for $name {
                 fn new() -> $name {
-                    $name {
-                        imm: 0,
-                    }
+                    $name {}
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                    self.imm = cpu.$from;
-                    execute_load!($to, self, cpu);
+                    let imm = cpu.$from;
+                    execute_load!($to, imm, cpu);
                     true
                 }
 

@@ -1,9 +1,8 @@
 macro_rules! execute_load {
-    ($reg:ident, $opcode:ident, $cpu:ident) => {{
-        let imm = $opcode.imm;
-        $cpu.$reg = imm;
-        $cpu.flags.zero = imm == 0;
-        $cpu.flags.negative = (imm & (0x80 as u8)) != 0
+    ($reg:ident, $val:expr, $cpu:ident) => {{
+        $cpu.$reg = $val;
+        $cpu.flags.zero = $val == 0;
+        $cpu.flags.negative = ($val & (0x80 as u8)) != 0
     }};
 }
 

@@ -42,20 +42,16 @@ pub mod tsx {
     use super::Cpu;
     use super::OpCode;
 
-    pub struct TSX {
-        imm: u8,
-    }
+    pub struct TSX {}
 
     impl OpCode for TSX {
         fn new() -> TSX {
-            TSX {
-                imm: 0,
-            }
+            TSX {}
         }
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            self.imm = cpu.sp;
-            execute_load!(X, self, cpu);
+            let imm = cpu.sp;
+            execute_load!(X, imm, cpu);
             true
         }
 

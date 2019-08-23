@@ -2,20 +2,16 @@ pub mod and_imm {
     use super::super::Cpu;
     use super::super::OpCode;
 
-    pub struct AndImm {
-        imm: u8,
-    }
+    pub struct AndImm {}
 
     impl OpCode for AndImm {
         fn new() -> AndImm {
-            AndImm {
-                imm: 0,
-            }
+            AndImm {}
         }
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            self.imm = cpu.read_from_pc() & cpu.A;
-            execute_load!(A, self, cpu);
+            let imm = cpu.read_from_pc() & cpu.A;
+            execute_load!(A, imm, cpu);
             true
         }
 

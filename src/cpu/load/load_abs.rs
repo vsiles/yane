@@ -7,7 +7,6 @@ macro_rules! declare_load_abs {
             pub struct $name {
                 low: u8,
                 high: u8,
-                imm: u8,
                 state: usize,
             }
 
@@ -16,7 +15,6 @@ macro_rules! declare_load_abs {
                     $name {
                         low: 0,
                         high: 0,
-                        imm: 0,
                         state: 0,
                     }
                 }
@@ -32,8 +30,8 @@ macro_rules! declare_load_abs {
                         false
                     } else {
                         let addr: u16 = mk_addr!(self.low, self.high);
-                        self.imm = cpu.mem.get(addr);
-                        execute_load!($reg, self, cpu);
+                        let imm = cpu.mem.get(addr);
+                        execute_load!($reg, imm, cpu);
                         true
                     }
                 }

@@ -2,20 +2,16 @@ pub mod ora_imm {
     use super::super::Cpu;
     use super::super::OpCode;
 
-    pub struct OraImm {
-        imm: u8,
-    }
+    pub struct OraImm {}
 
     impl OpCode for OraImm {
         fn new() -> OraImm {
-            OraImm {
-                imm: 0,
-            }
+            OraImm {}
         }
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            self.imm = cpu.read_from_pc() | cpu.A;
-            execute_load!(A, self, cpu);
+            let imm = cpu.read_from_pc() | cpu.A;
+            execute_load!(A, imm, cpu);
             true
         }
 
