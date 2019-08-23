@@ -22,12 +22,7 @@ macro_rules! declare_decr {
                 fn log(&self, cpu: &Cpu) {
                     let pc = cpu.pc - 1;
                     let code = cpu.mem.get(pc);
-                    print!(
-                        "{:04X}  {:02X}        DE{}",
-                        pc,
-                        code,
-                        stringify!($reg)
-                    );
+                    print!("{:04X}  {:02X}        DE{}", pc, code, stringify!($reg));
                     print!("{: <29}{}", "", cpu)
                 }
             }

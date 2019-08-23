@@ -1,6 +1,6 @@
+use super::super::memory::Memory;
 use super::flags::CpuFlags;
 use std::fmt;
-use super::super::memory::Memory;
 
 #[allow(non_snake_case)]
 pub struct Cpu {
@@ -23,7 +23,7 @@ pub fn new(mem: Memory) -> Cpu {
         mem: mem,
         flags: CpuFlags::new(),
     };
-    // TODO: 
+    // TODO:
     // cpu.mem[0x4017] = 0x00; // frame irq enabled
     // cpu.mem[0x4015] = 0x00; // all channels disabled
     // for i in 0..0x14 {

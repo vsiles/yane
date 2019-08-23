@@ -42,7 +42,7 @@ macro_rules! declare_load_abs {
                     let low = cpu.mem.get(pc + 1);
                     let high = cpu.mem.get(pc + 2);
                     let addr = mk_addr!(low, high);
-                    let val = cpu.mem.get(addr); 
+                    let val = cpu.mem.get(addr);
                     print!(
                         "{:04X}  {:02X} {:02X} {:02X}  LD{} ${:04X}",
                         pc,

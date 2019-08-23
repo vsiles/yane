@@ -4,7 +4,7 @@ pub mod asl_a {
 
     pub struct AslA {}
 
-    impl OpCode for AslA { 
+    impl OpCode for AslA {
         fn new() -> AslA {
             AslA {}
         }
@@ -19,11 +19,7 @@ pub mod asl_a {
         fn log(&self, cpu: &Cpu) {
             let pc = cpu.pc - 1;
             let code = cpu.mem.get(pc);
-            print!(
-                "{:04X}  {:02X}        ASL A",
-                pc,
-                code,
-            );
+            print!("{:04X}  {:02X}        ASL A", pc, code,);
             print!("{: <27}{}", "", cpu);
         }
     }

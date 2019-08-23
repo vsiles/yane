@@ -19,13 +19,7 @@ pub mod and_imm {
             let pc = cpu.pc - 1;
             let code = cpu.mem.get(pc);
             let imm = cpu.mem.get(pc + 1);
-            print!(
-                "{:04X}  {:02X} {:02X}     AND #${:02X}",
-                pc,
-                code,
-                imm,
-                imm
-            );
+            print!("{:04X}  {:02X} {:02X}     AND #${:02X}", pc, code, imm, imm);
             print!("{: <24}{}", "", cpu)
         }
     }

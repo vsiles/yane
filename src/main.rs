@@ -9,15 +9,15 @@ use memory::Memory;
 
 use cpu::tax::TAX;
 use cpu::tay::TAY;
-use cpu::txa::TXA;
-use cpu::tya::TYA;
-use cpu::txs::TXS;
 use cpu::tsx::TSX;
+use cpu::txa::TXA;
+use cpu::txs::TXS;
+use cpu::tya::TYA;
 
-use cpu::inx::InX;
-use cpu::iny::InY;
 use cpu::dex::DeX;
 use cpu::dey::DeY;
+use cpu::inx::InX;
+use cpu::iny::InY;
 
 use cpu::cmp_imm::CmpImm;
 use cpu::cpx_imm::CpxImm;
@@ -57,44 +57,44 @@ use cpu::sty_abs::StyAbs;
 use cpu::sty_zero_page::StyZeroPage;
 use cpu::sty_zero_page_x::StyZeroPageX;
 
-use cpu::jmp::Jmp;
-use cpu::jsr::Jsr;
-use cpu::rts::Rts;
-use cpu::rti::Rti;
-use cpu::nop::Nop;
-use cpu::sec::Sec;
-use cpu::sed::Sed;
-use cpu::sei::Sei;
 use cpu::clc::Clc;
 use cpu::cld::Cld;
 use cpu::cli::Cli;
 use cpu::clv::Clv;
+use cpu::jmp::Jmp;
+use cpu::jsr::Jsr;
+use cpu::nop::Nop;
+use cpu::rti::Rti;
+use cpu::rts::Rts;
+use cpu::sec::Sec;
+use cpu::sed::Sed;
+use cpu::sei::Sei;
 
-use cpu::bcs::Bcs;
 use cpu::bcc::Bcc;
+use cpu::bcs::Bcs;
 use cpu::beq::Beq;
-use cpu::bne::Bne;
-use cpu::bvs::Bvs;
-use cpu::bvc::Bvc;
-use cpu::bpl::Bpl;
 use cpu::bmi::Bmi;
+use cpu::bne::Bne;
+use cpu::bpl::Bpl;
+use cpu::bvc::Bvc;
+use cpu::bvs::Bvs;
 
 use cpu::bit_abs::BitAbs;
 use cpu::bit_zp::BitZp;
 
-use cpu::and::and_imm::AndImm;
-use cpu::ora::ora_imm::OraImm;
-use cpu::eor::eor_imm::EorImm;
 use cpu::adc::adc_imm::AdcImm;
+use cpu::and::and_imm::AndImm;
+use cpu::eor::eor_imm::EorImm;
+use cpu::ora::ora_imm::OraImm;
 use cpu::sbc::sbc_imm::SbcImm;
 
-use cpu::php::Php;
 use cpu::pha::Pha;
+use cpu::php::Php;
 use cpu::pla::Pla;
 use cpu::plp::Plp;
 
-use cpu::lsr::lsr_a::LsrA;
 use cpu::asl::asl_a::AslA;
+use cpu::lsr::lsr_a::LsrA;
 use cpu::ror::ror_a::RorA;
 
 enum State {
@@ -115,8 +115,13 @@ macro_rules! add_opcode {
     }};
 }
 
-fn cycle(cpu: &mut Cpu, opcode: &mut Box<dyn OpCode>, state: State, 
-         start_cycle: &mut usize, nr: &mut usize) -> State {
+fn cycle(
+    cpu: &mut Cpu,
+    opcode: &mut Box<dyn OpCode>,
+    state: State,
+    start_cycle: &mut usize,
+    nr: &mut usize,
+) -> State {
     // print!("> [CYCLE {:04} PC {:#04x}]", *nr, cpu.pc);
     *nr = *nr + 1;
     match state {
@@ -244,8 +249,11 @@ fn main() {
         Some(header) => {
             println!("Dumping header info:\n{}\n", header);
             header
-        },
-        None => { println!("Invalid header"); std::process::exit(1) }
+        }
+        None => {
+            println!("Invalid header");
+            std::process::exit(1)
+        }
     };
 
     if header.mapper != 0 {

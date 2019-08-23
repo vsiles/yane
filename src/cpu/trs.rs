@@ -1,4 +1,3 @@
-
 macro_rules! declare_transfert {
     ($mod:ident, $name:ident, $from:ident, $to:ident) => {
         pub mod $mod {

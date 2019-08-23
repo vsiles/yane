@@ -4,7 +4,7 @@ pub mod lsr_a {
 
     pub struct LsrA {}
 
-    impl OpCode for LsrA { 
+    impl OpCode for LsrA {
         fn new() -> LsrA {
             LsrA {}
         }
@@ -19,11 +19,7 @@ pub mod lsr_a {
         fn log(&self, cpu: &Cpu) {
             let pc = cpu.pc - 1;
             let code = cpu.mem.get(pc);
-            print!(
-                "{:04X}  {:02X}        LSR A",
-                pc,
-                code,
-            );
+            print!("{:04X}  {:02X}        LSR A", pc, code,);
             print!("{: <27}{}", "", cpu);
         }
     }

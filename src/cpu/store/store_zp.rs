@@ -11,10 +11,7 @@ macro_rules! declare_store_zero_page {
 
             impl OpCode for $name {
                 fn new() -> $name {
-                    $name {
-                        addr: 0,
-                        state: 0,
-                    }
+                    $name { addr: 0, state: 0 }
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
@@ -41,7 +38,7 @@ macro_rules! declare_store_zero_page {
                         code,
                         addr,
                         stringify!($reg),
-                       addr 
+                        addr
                     );
                     print!(" = {:02X} {: >19}{}", old, "", cpu)
                 }

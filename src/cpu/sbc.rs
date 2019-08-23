@@ -12,8 +12,8 @@ pub mod sbc_imm {
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
             // https://stackoverflow.com/questions/29193303/6502-emulation-proper-way-to-implement-adc-and-sbc
-            let imm : u8 = cpu.read_from_pc();
-            let a : u8 = cpu.A;
+            let imm: u8 = cpu.read_from_pc();
+            let a: u8 = cpu.A;
             let (val0, _) = a.overflowing_sub(imm);
             let (val, _) = val0.overflowing_sub(if cpu.flags.carry { 0 } else { 1 });
             let res = (a as i32) - (imm as i32) - (if cpu.flags.carry { 0 } else { 1 });
@@ -29,13 +29,7 @@ pub mod sbc_imm {
             let pc = cpu.pc - 1;
             let code = cpu.mem.get(pc);
             let imm = cpu.mem.get(pc + 1);
-            print!(
-                "{:04X}  {:02X} {:02X}     SBC #${:02X}",
-                pc,
-                code,
-                imm,
-                imm
-            );
+            print!("{:04X}  {:02X} {:02X}     SBC #${:02X}", pc, code, imm, imm);
             print!("{: <24}{}", "", cpu)
         }
     }

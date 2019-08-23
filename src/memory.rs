@@ -35,9 +35,9 @@ fn get_addr(addr: u16) -> (usize, bool) {
         return (addr as usize, true);
     }
     if addr >= 0xC000 {
-        return ((addr as usize) - (0xC000 - 0x8000), false)
+        return ((addr as usize) - (0xC000 - 0x8000), false);
     } else {
-        return (addr as usize, false)
+        return (addr as usize, false);
     }
 }
 
@@ -45,7 +45,7 @@ impl Memory {
     pub fn get(&self, addr: u16) -> u8 {
         let real_addr = get_addr(addr);
         // println!("DEBUG reading at {:#X} (which is {:#X})", addr, real_addr.0);
-        return self.data[real_addr.0]
+        return self.data[real_addr.0];
     }
 
     pub fn set(&mut self, addr: u16, val: u8) {
@@ -61,7 +61,7 @@ impl Memory {
         // Create 16k address space
         let mut raw_data = Vec::with_capacity(0x10000 as usize);
         // Set 0s for the first 32k
-        for _ in 0 ..(0x8000 as usize) {
+        for _ in 0..(0x8000 as usize) {
             raw_data.push(0)
         }
         // Populate the Mapper 0 rom  at 0x8000
@@ -69,14 +69,10 @@ impl Memory {
             raw_data.push(rom[i])
         }
 
-        Memory {
-            data: raw_data,
-        }
+        Memory { data: raw_data }
     }
 
     pub fn dummy() -> Memory {
-        Memory {
-            data: Vec::new(),
-        }
+        Memory { data: Vec::new() }
     }
 }

@@ -16,10 +16,10 @@ pub mod rts;
 pub mod branch;
 #[macro_use]
 pub mod cmp;
-pub mod and;
-pub mod ora;
-pub mod eor;
 pub mod adc;
+pub mod and;
+pub mod eor;
+pub mod ora;
 pub mod sbc;
 #[macro_use]
 pub mod incr;
@@ -27,10 +27,10 @@ pub mod incr;
 pub mod decr;
 #[macro_use]
 pub mod trs;
-pub mod rti;
-pub mod lsr;
 pub mod asl;
+pub mod lsr;
 pub mod ror;
+pub mod rti;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -61,11 +61,7 @@ pub mod tsx {
         fn log(&self, cpu: &Cpu) {
             let pc = cpu.pc - 1;
             let code = cpu.mem.get(pc);
-            print!(
-                "{:04X}  {:02X}        TSX",
-                pc,
-                code
-            );
+            print!("{:04X}  {:02X}        TSX", pc, code);
             print!("{: <29}{}", "", cpu)
         }
     }
@@ -90,11 +86,7 @@ pub mod txs {
         fn log(&self, cpu: &Cpu) {
             let pc = cpu.pc - 1;
             let code = cpu.mem.get(pc);
-            print!(
-                "{:04X}  {:02X}        TXS",
-                pc,
-                code
-            );
+            print!("{:04X}  {:02X}        TXS", pc, code);
             print!("{: <29}{}", "", cpu)
         }
     }
@@ -156,7 +148,7 @@ declare_store_ndx_ind!(sta_ndx_ind, StaNdxInd, A);
 
 declare_store_ind_ndx!(sta_ind_ndx, StaIndNdx, A);
 
-// SEC, SED, SEI, CLC, CLD, CLI 
+// SEC, SED, SEI, CLC, CLD, CLI
 declare_flags_opcode!(sec, Sec, SEC, carry, true);
 declare_flags_opcode!(sed, Sed, SED, decimal_mode, true);
 declare_flags_opcode!(sei, Sei, SEI, int_disable, true);
@@ -177,8 +169,8 @@ declare_branch!(bmi, Bmi, negative, true, BMI);
 
 // BIT
 pub mod bit_abs {
-    use super::super::Cpu;
     use super::super::flags::CpuFlags;
+    use super::super::Cpu;
     use super::super::OpCode;
 
     const SIZE: u16 = 3;
@@ -229,11 +221,7 @@ pub mod bit_abs {
             let addr = mk_addr!(self.low, self.high);
             print!(
                 "{:04X}  {:02X} {:02X} {:02X}  BIT ${:04X}",
-                pc,
-                code,
-                self.low,
-                self.high,
-                addr
+                pc, code, self.low, self.high, addr
             );
             let mut old_cpu = cpu.debug_clone();
             old_cpu.flags = self.saved.clone();
@@ -253,10 +241,7 @@ pub mod bit_zp {
 
     impl OpCode for BitZp {
         fn new() -> BitZp {
-            BitZp {
-                addr: 0,
-                state: 0,
-            }
+            BitZp { addr: 0, state: 0 }
         }
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
@@ -281,13 +266,7 @@ pub mod bit_zp {
             let code = cpu.mem.get(pc);
             let imm = cpu.mem.get(pc + 1);
             let old = cpu.mem.get(imm as u16);
-            print!(
-                "{:04X}  {:02X} {:02X}     BIT ${:02X}",
-                pc,
-                code,
-                imm,
-                imm
-            );
+            print!("{:04X}  {:02X} {:02X}     BIT ${:02X}", pc, code, imm, imm);
             print!(" = {:02X}{: >20}{}", old, "", cpu)
         }
     }
@@ -303,9 +282,7 @@ pub mod php {
 
     impl OpCode for Php {
         fn new() -> Php {
-            Php {
-                state: 0,
-            }
+            Php { state: 0 }
         }
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
@@ -341,9 +318,7 @@ pub mod pha {
 
     impl OpCode for Pha {
         fn new() -> Pha {
-            Pha {
-                state: 0,
-            }
+            Pha { state: 0 }
         }
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
@@ -376,9 +351,7 @@ pub mod pla {
 
     impl OpCode for Pla {
         fn new() -> Pla {
-            Pla {
-                state: 0,
-            }
+            Pla { state: 0 }
         }
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
@@ -421,9 +394,7 @@ pub mod plp {
 
     impl OpCode for Plp {
         fn new() -> Plp {
-            Plp {
-                state: 0,
-            }
+            Plp { state: 0 }
         }
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
