@@ -12,7 +12,7 @@ macro_rules! declare_addr_imm {
                 }
 
                 fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                    let imm = cpu.read_from_pc();
+                    let imm = cpu.read_from_pc() as usize;
                     $action(cpu, imm);
                     true
                 }

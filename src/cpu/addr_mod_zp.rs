@@ -1,5 +1,5 @@
-macro_rules! declare_load_zero_page {
-    ($mod:ident, $name:ident, $reg:ident) => {
+macro_rules! declare_addr_zero_page {
+    ($mod:ident, $name:ident, $mnemo:ident, $action:expr) => {
         pub mod $mod {
             use super::Cpu;
             use super::OpCode;
@@ -21,9 +21,7 @@ macro_rules! declare_load_zero_page {
                         self.state = 1;
                         false
                     } else {
-                        // read data from memory using offset in page 0
-                        let imm = cpu.mem.get(self.addr as u16);
-                        execute_load!($reg, imm, cpu);
+                        $action(cpu, self.addr as usize);
                         true
                     }
                 }
@@ -31,17 +29,17 @@ macro_rules! declare_load_zero_page {
                 fn log(&self, cpu: &Cpu) {
                     let pc = cpu.pc - 1;
                     let code = cpu.mem.get(pc);
-                    let payload = cpu.mem.get(pc + 1);
+                    let addr = cpu.mem.get(pc + 1);
+                    let old = cpu.mem.get(addr as u16);
                     print!(
-                        "{:04X}  {:02X} {:02X}     LD{} ${:02X}",
+                        "{:04X}  {:02X} {:02X}     {} ${:02X}",
                         pc,
                         code,
-                        payload,
-                        stringify!($reg),
-                        payload
+                        addr,
+                        stringify!($mnemo),
+                        addr
                     );
-                    let imm = cpu.mem.get(payload as u16);
-                    print!(" = {:02X}{: >20}{}", imm, "", cpu)
+                    print!(" = {:02X} {: >19}{}", old, "", cpu)
                 }
             }
         }

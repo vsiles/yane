@@ -22,6 +22,9 @@ use cpu::iny::InY;
 use cpu::cmp_imm::CmpImm;
 use cpu::cpx_imm::CpxImm;
 use cpu::cpy_imm::CpyImm;
+use cpu::cmp_zp::CmpZp;
+use cpu::cpx_zp::CpxZp;
+use cpu::cpy_zp::CpyZp;
 use cpu::cmp::CmpNdxInd;
 
 use cpu::lda_abs::LdaAbs;
@@ -83,7 +86,8 @@ use cpu::bvs::Bvs;
 use cpu::bit_abs::BitAbs;
 use cpu::bit_zp::BitZp;
 
-use cpu::adc::adc_imm::AdcImm;
+use cpu::adc_imm::AdcImm;
+use cpu::adc_zp::AdcZp;
 use cpu::adc::adc_ndx_ind::AdcNdxInd;
 use cpu::and_imm::AndImm;
 use cpu::and_ndx_ind::AndNdxInd;
@@ -94,7 +98,8 @@ use cpu::eor_zp::EorZp;
 use cpu::ora_imm::OraImm;
 use cpu::ora_ndx_ind::OraNdxInd;
 use cpu::ora_zp::OraZp;
-use cpu::sbc::SbcImm;
+use cpu::sbc_imm::SbcImm;
+use cpu::sbc_zp::SbcZp;
 use cpu::sbc::SbcNdxInd;
 
 use cpu::pha::Pha;
@@ -168,6 +173,7 @@ fn cycle(
                 0x58 => add_opcode!(Cli, opcode, cpu),
                 0x60 => add_opcode!(Rts, opcode, cpu),
                 0x61 => add_opcode!(AdcNdxInd, opcode, cpu),
+                0x65 => add_opcode!(AdcZp, opcode, cpu),
                 0x68 => add_opcode!(Pla, opcode, cpu),
                 0x69 => add_opcode!(AdcImm, opcode, cpu),
                 0x6A => add_opcode!(RorA, opcode, cpu),
@@ -216,6 +222,8 @@ fn cycle(
                 0xBE => add_opcode!(LdxAbsY, opcode, cpu),
                 0xC0 => add_opcode!(CpyImm, opcode, cpu),
                 0xC1 => add_opcode!(CmpNdxInd, opcode, cpu),
+                0xC4 => add_opcode!(CpyZp, opcode, cpu),
+                0xC5 => add_opcode!(CmpZp, opcode, cpu),
                 0xC8 => add_opcode!(InY, opcode, cpu),
                 0xC9 => add_opcode!(CmpImm, opcode, cpu),
                 0xCA => add_opcode!(DeX, opcode, cpu),
@@ -223,6 +231,8 @@ fn cycle(
                 0xD8 => add_opcode!(Cld, opcode, cpu),
                 0xE0 => add_opcode!(CpxImm, opcode, cpu),
                 0xE1 => add_opcode!(SbcNdxInd, opcode, cpu),
+                0xE4 => add_opcode!(CpxZp, opcode, cpu),
+                0xE5 => add_opcode!(SbcZp, opcode, cpu),
                 0xE8 => add_opcode!(InX, opcode, cpu),
                 0xE9 => add_opcode!(SbcImm, opcode, cpu),
                 0xEA => add_opcode!(Nop, opcode, cpu),

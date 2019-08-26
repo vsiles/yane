@@ -1,6 +1,4 @@
 #[macro_use]
-mod store_zp;
-#[macro_use]
 mod store_zp_reg;
 #[macro_use]
 mod store_abs;

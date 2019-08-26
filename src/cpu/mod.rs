@@ -32,40 +32,105 @@ pub mod rti;
 #[macro_use]
 pub mod bin_ndx_ind;
 #[macro_use]
-pub mod bin_zp;
-#[macro_use]
 pub mod addr_mod_imm;
+#[macro_use]
+pub mod addr_mod_zp;
 
 pub use cpu::*;
 pub use opcode::OpCode;
 
+// ADC
+// https://stackoverflow.com/questions/29193303/6502-emulation-proper-way-to-implement-adc-and-sbc
+fn adc_core(cpu: &mut Cpu, imm: usize) {
+    let a: usize = cpu.A as usize;
+    let val: usize = a + imm + (if cpu.flags.carry { 1 } else { 0 });
+    cpu.flags.overflow = ((a ^ val) & (imm ^ val) & 0x80) == 0x80;
+    cpu.flags.carry = (val & 0x100) == 0x100;
+    cpu.flags.zero = (val & 0xFF) == 0;
+    cpu.flags.negative = (val & 0x80) == 0x80;
+    cpu.A = (val & 0xFF) as u8
+}
+
+fn adc_imm(cpu: &mut Cpu, val: usize) {
+    adc_core(cpu, val)
+}
+
+fn adc_addr(cpu: &mut Cpu, val: usize) {
+    let addr = (val & 0xFFFF) as u16;
+    let imm = cpu.mem.get(addr) as usize;
+    adc_core(cpu, imm)
+}
+
+declare_addr_imm!(adc_imm, AdcImm, ADC, super::adc_imm);
+declare_addr_zero_page!(adc_zp, AdcZp, ADC, super::adc_addr);
+
+// SBC
+// https://stackoverflow.com/questions/29193303/6502-emulation-proper-way-to-implement-adc-and-sbc
+// TODO: Could be implemented using ADC(~input) as ~input is -input -1
+fn sbc_core(cpu: &mut Cpu, imm: u8) {
+    let a: u8 = cpu.A;
+    let (val0, _) = a.overflowing_sub(imm);
+    let (val, _) = val0.overflowing_sub(if cpu.flags.carry { 0 } else { 1 });
+    let res = (a as i32) - (imm as i32) - (if cpu.flags.carry { 0 } else { 1 });
+    cpu.flags.overflow = ((a ^ val) & (a ^ imm) & 0x80) == 0x80;
+    cpu.flags.carry = res >= 0;
+    cpu.flags.zero = val == 0;
+    cpu.flags.negative = (val & 0x80) == 0x80;
+    cpu.A = val
+}
+
+fn sbc_imm(cpu: &mut Cpu, val: usize) {
+    let imm = (val & 0xFF) as u8;
+    sbc_core(cpu, imm)
+}
+
+fn sbc_addr(cpu: &mut Cpu, val: usize) {
+    let addr = (val & 0xFFFF) as u16;
+    let imm = cpu.mem.get(addr);
+    sbc_core(cpu, imm)
+}
+
+declare_addr_imm!(sbc_imm, SbcImm, SBC, super::sbc_imm);
+declare_addr_zero_page!(sbc_zp, SbcZp, SBC, super::sbc_addr);
+
 // ORA, AND, EOR
-fn ora(cpu: &mut Cpu, imm: u8) {
-    let imm = imm | cpu.A;
-    execute_load!(A, imm, cpu);
+macro_rules! bool_imm_impl {
+    ($name:ident, $op:expr) => {
+        fn $name(cpu: &mut Cpu, val: usize) { 
+            let imm = $op((val & 0xFF) as u8, cpu.A);
+            execute_load!(A, imm, cpu);
+        }
+    };
 }
 
-fn and(cpu: &mut Cpu, imm: u8) {
-    let imm = imm & cpu.A;
-    execute_load!(A, imm, cpu);
+macro_rules! bool_addr_impl {
+    ($name:ident, $op:expr) => {
+        fn $name(cpu: &mut Cpu, val: usize) { 
+            let addr = (val & 0xFFFF) as u16;
+            let imm = $op(cpu.mem.get(addr), cpu.A);
+            execute_load!(A, imm, cpu)
+        }
+    };
 }
 
-fn eor(cpu: &mut Cpu, imm: u8) {
-    let imm = imm ^ cpu.A;
-    execute_load!(A, imm, cpu);
-}
+bool_imm_impl!(ora_imm, |x, y| { x | y });
+bool_imm_impl!(and_imm, |x, y| { x & y });
+bool_imm_impl!(eor_imm, |x, y| { x ^ y });
+bool_addr_impl!(ora_addr, |x, y| { x | y });
+bool_addr_impl!(and_addr, |x, y| { x & y });
+bool_addr_impl!(eor_addr, |x, y| { x ^ y });
 
-declare_addr_imm!(ora_imm, OraImm, ORA, super::ora);
-declare_addr_imm!(and_imm, AndImm, AND, super::and);
-declare_addr_imm!(eor_imm, EorImm, EOR, super::eor);
+declare_addr_imm!(ora_imm, OraImm, ORA, super::ora_imm);
+declare_addr_imm!(and_imm, AndImm, AND, super::and_imm);
+declare_addr_imm!(eor_imm, EorImm, EOR, super::eor_imm);
 
 declare_bin_ndx_ind!(ora_ndx_ind, OraNdxInd, A, ORA, |x, y| { x | y });
 declare_bin_ndx_ind!(and_ndx_ind, AndNdxInd, A, AND, |x, y| { x & y });
 declare_bin_ndx_ind!(eor_ndx_ind, EorNdxInd, A, EOR, |x, y| { x ^ y });
 
-declare_bin_zero_page!(ora_zp, OraZp, A, ORA, |x, y| {x | y});
-declare_bin_zero_page!(and_zp, AndZp, A, AND, |x, y| {x & y});
-declare_bin_zero_page!(eor_zp, EorZp, A, EOR, |x, y| {x ^ y});
+declare_addr_zero_page!(ora_zp, OraZp, ORA, super::ora_addr);
+declare_addr_zero_page!(and_zp, AndZp, AND, super::and_addr);
+declare_addr_zero_page!(eor_zp, EorZp, EOR, super::eor_addr);
 
 // TAX, TAY, TSX, TXA, TXS, TYA
 declare_transfert!(tax, TAX, A, X);
@@ -131,9 +196,9 @@ declare_decr!(dex, DeX, X);
 declare_decr!(dey, DeY, Y);
 
 // CMP, CMX, CMY
-macro_rules! cmp_impl {
+macro_rules! cmp_core {
     ($name:ident, $reg:ident) => {
-        fn $name(cpu: &mut Cpu, imm: u8) { 
+        fn $name(cpu: &mut Cpu, imm: u8) {
             let (res, _) = cpu.$reg.overflowing_sub(imm);
             cpu.flags.carry = cpu.$reg >= imm;
             cpu.flags.zero = cpu.$reg == imm;
@@ -141,33 +206,79 @@ macro_rules! cmp_impl {
         }
     };
 }
-cmp_impl!(cmp_a, A);
-cmp_impl!(cmp_x, X);
-cmp_impl!(cmp_y, Y);
+cmp_core!(cmp_a, A);
+cmp_core!(cmp_x, X);
+cmp_core!(cmp_y, Y);
 
-declare_addr_imm!(cmp_imm, CmpImm, CMP, super::cmp_a);
-declare_addr_imm!(cpx_imm, CpxImm, CPX, super::cmp_x);
-declare_addr_imm!(cpy_imm, CpyImm, CPY, super::cmp_y);
+macro_rules! cmp_imm_impl {
+    ($name:ident, $core:ident) => {
+        fn $name(cpu: &mut Cpu, val: usize) {
+            let imm = (val & 0xFF) as u8;
+            $core(cpu, imm)
+        }
+    };
+}
+
+cmp_imm_impl!(cmp_imm_a, cmp_a);
+cmp_imm_impl!(cmp_imm_x, cmp_x);
+cmp_imm_impl!(cmp_imm_y, cmp_y);
+
+declare_addr_imm!(cmp_imm, CmpImm, CMP, super::cmp_imm_a);
+declare_addr_imm!(cpx_imm, CpxImm, CPX, super::cmp_imm_x);
+declare_addr_imm!(cpy_imm, CpyImm, CPY, super::cmp_imm_y);
+
+macro_rules! cmp_addr_impl {
+    ($name:ident, $core:ident) => {
+        fn $name(cpu: &mut Cpu, val: usize) {
+            let addr = (val & 0xFFFF) as u16;
+            let imm = cpu.mem.get(addr);
+            $core(cpu, imm)
+        }
+    };
+}
+
+cmp_addr_impl!(cmp_addr_a, cmp_a);
+cmp_addr_impl!(cmp_addr_x, cmp_x);
+cmp_addr_impl!(cmp_addr_y, cmp_y);
+
+declare_addr_zero_page!(cmp_zp, CmpZp, CMP, super::cmp_addr_a);
+declare_addr_zero_page!(cpx_zp, CpxZp, CPX, super::cmp_addr_x);
+declare_addr_zero_page!(cpy_zp, CpyZp, CPY, super::cmp_addr_y);
 
 // LDA, LDX, LDY
-macro_rules! load_impl {
+macro_rules! load_imm_impl {
     ($name:ident, $reg:ident) => {
-        fn $name(cpu: &mut Cpu, imm: u8) { 
+        fn $name(cpu: &mut Cpu, val: usize) { 
+            let imm = (val & 0xFF) as u8;
             execute_load!($reg, imm, cpu);
         }
     };
 }
-load_impl!(load_a, A);
-load_impl!(load_x, X);
-load_impl!(load_y, Y);
 
-declare_addr_imm!(lda_imm, LdaImm, LDA, super::load_a);
-declare_addr_imm!(ldx_imm, LdxImm, LDX, super::load_x);
-declare_addr_imm!(ldy_imm, LdyImm, LDY, super::load_y);
+macro_rules! load_addr_impl {
+    ($name:ident, $reg:ident) => {
+        fn $name(cpu: &mut Cpu, val: usize) { 
+            let addr = (val & 0xFFFF) as u16;
+            let imm = cpu.mem.get(addr);
+            execute_load!($reg, imm, cpu)
+        }
+    };
+}
 
-declare_load_zero_page!(lda_zero_page, LdaZeroPage, A);
-declare_load_zero_page!(ldx_zero_page, LdxZeroPage, X);
-declare_load_zero_page!(ldy_zero_page, LdyZeroPage, Y);
+load_imm_impl!(load_imm_a, A);
+load_imm_impl!(load_imm_x, X);
+load_imm_impl!(load_imm_y, Y);
+load_addr_impl!(load_addr_a, A);
+load_addr_impl!(load_addr_x, X);
+load_addr_impl!(load_addr_y, Y);
+
+declare_addr_imm!(lda_imm, LdaImm, LDA, super::load_imm_a);
+declare_addr_imm!(ldx_imm, LdxImm, LDX, super::load_imm_x);
+declare_addr_imm!(ldy_imm, LdyImm, LDY, super::load_imm_y);
+
+declare_addr_zero_page!(lda_zero_page, LdaZeroPage, LDA, super::load_addr_a);
+declare_addr_zero_page!(ldx_zero_page, LdxZeroPage, LDX, super::load_addr_x);
+declare_addr_zero_page!(ldy_zero_page, LdyZeroPage, LDY, super::load_addr_y);
 
 declare_load_zero_page_reg!(lda_zero_page_x, LdaZeroPageX, A, X);
 declare_load_zero_page_reg!(ldy_zero_page_x, LdyZeroPageX, Y, X);
@@ -185,9 +296,21 @@ declare_load_abs_reg!(ldy_abs_x, LdyAbsX, Y, X);
 declare_load_ind_ndx!(lda_ind_ndx, LdaIndNdx, A);
 
 // STA, STX, STY
-declare_store_zero_page!(sta_zero_page, StaZeroPage, A);
-declare_store_zero_page!(stx_zero_page, StxZeroPage, X);
-declare_store_zero_page!(sty_zero_page, StyZeroPage, Y);
+macro_rules! store_impl {
+    ($name:ident, $reg:ident) => {
+        fn $name(cpu: &mut Cpu, val: usize) { 
+            let addr = (val & 0xFFFF) as u16;
+            cpu.mem.set(addr, cpu.$reg)
+        }
+    };
+}
+store_impl!(store_a, A);
+store_impl!(store_x, X);
+store_impl!(store_y, Y);
+
+declare_addr_zero_page!(sta_zero_page, StaZeroPage, STA, super::store_a);
+declare_addr_zero_page!(stx_zero_page, StxZeroPage, STX, super::store_x);
+declare_addr_zero_page!(sty_zero_page, StyZeroPage, STY, super::store_y);
 
 declare_store_zero_page_reg!(sta_zero_page_x, StaZeroPageX, A, X);
 declare_store_zero_page_reg!(stx_zero_page_y, StxZeroPageY, X, Y);
@@ -286,47 +409,16 @@ pub mod bit_abs {
     }
 }
 
-pub mod bit_zp {
-    use super::super::Cpu;
-    use super::super::OpCode;
-
-    pub struct BitZp {
-        addr: u8,
-        state: usize,
-    }
-
-    impl OpCode for BitZp {
-        fn new() -> BitZp {
-            BitZp { addr: 0, state: 0 }
-        }
-
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            if self.state == 0 {
-                // read offset from memory
-                self.addr = cpu.read_from_pc();
-                self.state = 1;
-                false
-            } else {
-                // read data from memory using offset in page 0
-                let imm = cpu.mem.get(self.addr as u16);
-                let val = cpu.A & imm;
-                cpu.flags.zero = val == 0;
-                cpu.flags.overflow = (imm & 0x40) != 0;
-                cpu.flags.negative = (imm & 0x80) != 0;
-                true
-            }
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            let imm = cpu.mem.get(pc + 1);
-            let old = cpu.mem.get(imm as u16);
-            print!("{:04X}  {:02X} {:02X}     BIT ${:02X}", pc, code, imm, imm);
-            print!(" = {:02X}{: >20}{}", old, "", cpu)
-        }
-    }
+fn bit(cpu: &mut Cpu, val: usize) {
+    let addr = (val & 0xFFFF) as u16;
+    let imm = cpu.mem.get(addr);
+    let fval = cpu.A & imm;
+    cpu.flags.zero = fval == 0;
+    cpu.flags.overflow = (imm & 0x40) != 0;
+    cpu.flags.negative = (imm & 0x80) != 0
 }
+
+declare_addr_zero_page!(bit_zp, BitZp, BIT, super::bit);
 
 pub mod php {
     use super::super::Cpu;
