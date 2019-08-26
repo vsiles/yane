@@ -18,6 +18,8 @@ use cpu::dex::DeX;
 use cpu::dey::DeY;
 use cpu::inx::InX;
 use cpu::iny::InY;
+use cpu::inc_zp::IncZp;
+use cpu::dec_zp::DecZp;
 
 use cpu::cmp_imm::CmpImm;
 use cpu::cpx_imm::CpxImm;
@@ -233,6 +235,7 @@ fn cycle(
                 0xC1 => add_opcode!(CmpNdxInd, opcode, cpu),
                 0xC4 => add_opcode!(CpyZp, opcode, cpu),
                 0xC5 => add_opcode!(CmpZp, opcode, cpu),
+                0xC6 => add_opcode!(DecZp, opcode, cpu),
                 0xC8 => add_opcode!(InY, opcode, cpu),
                 0xC9 => add_opcode!(CmpImm, opcode, cpu),
                 0xCA => add_opcode!(DeX, opcode, cpu),
@@ -242,6 +245,7 @@ fn cycle(
                 0xE1 => add_opcode!(SbcNdxInd, opcode, cpu),
                 0xE4 => add_opcode!(CpxZp, opcode, cpu),
                 0xE5 => add_opcode!(SbcZp, opcode, cpu),
+                0xE6 => add_opcode!(IncZp, opcode, cpu),
                 0xE8 => add_opcode!(InX, opcode, cpu),
                 0xE9 => add_opcode!(SbcImm, opcode, cpu),
                 0xEA => add_opcode!(Nop, opcode, cpu),

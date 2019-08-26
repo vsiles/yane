@@ -2,7 +2,7 @@ macro_rules! execute_load {
     ($reg:ident, $val:expr, $cpu:ident) => {{
         $cpu.$reg = $val;
         $cpu.flags.zero = $val == 0;
-        $cpu.flags.negative = ($val & (0x80 as u8)) != 0
+        $cpu.flags.negative = ($val & (0x80 as u8)) != 0;
     }};
 }
 

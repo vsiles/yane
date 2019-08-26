@@ -344,18 +344,14 @@ declare_branch!(bmi, Bmi, negative, true, BMI);
 
 // BIT
 pub mod bit_abs {
-    use super::super::flags::CpuFlags;
     use super::super::Cpu;
     use super::super::OpCode;
-
-    const SIZE: u16 = 3;
 
     pub struct BitAbs {
         low: u8,
         high: u8,
         imm: u8,
         state: usize,
-        saved: CpuFlags,
     }
 
     impl OpCode for BitAbs {
@@ -365,13 +361,11 @@ pub mod bit_abs {
                 high: 0,
                 imm: 0,
                 state: 0,
-                saved: CpuFlags::new(),
             }
         }
 
         fn decode(&mut self, cpu: &mut Cpu) -> bool {
             if self.state == 0 {
-                self.saved = cpu.flags.clone();
                 self.low = cpu.read_from_pc();
                 self.state = 1;
                 false
@@ -391,16 +385,17 @@ pub mod bit_abs {
         }
 
         fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - SIZE;
+            let pc = cpu.pc - 1;
             let code = cpu.mem.get(pc);
-            let addr = mk_addr!(self.low, self.high);
+            let low = cpu.mem.get(pc + 1);
+            let high = cpu.mem.get(pc + 2);
+            let addr = mk_addr!(low, high);
+            let imm = cpu.mem.get(addr);
             print!(
                 "{:04X}  {:02X} {:02X} {:02X}  BIT ${:04X}",
-                pc, code, self.low, self.high, addr
+                pc, code, low, high, addr
             );
-            let mut old_cpu = cpu.debug_clone();
-            old_cpu.flags = self.saved.clone();
-            print!(" = {:02X} {: >17}{}", self.imm, "", old_cpu);
+            print!(" = {:02X} {: >17}{}", imm, "", cpu);
         }
     }
 }
@@ -716,3 +711,21 @@ fn rol_core(cpu: &mut Cpu, data: u8) -> u8 {
 }
 
 declare_addr_zero_page2!(rol_zp, RolZp, ROL, super::rol_core);
+
+fn inc_core(cpu: &mut Cpu, data: u8) -> u8 {
+    let res: u8 = data.overflowing_add(1).0;
+    cpu.flags.zero = res == 0;
+    cpu.flags.negative = (res & (0x80 as u8)) != 0;
+    res
+}
+
+declare_addr_zero_page2!(inc_zp, IncZp, INC, super::inc_core);
+
+fn dec_core(cpu: &mut Cpu, data: u8) -> u8 {
+    let res: u8 = data.overflowing_sub(1).0;
+    cpu.flags.zero = res == 0;
+    cpu.flags.negative = (res & (0x80 as u8)) != 0;
+    res
+}
+
+declare_addr_zero_page2!(dec_zp, DecZp, DEC, super::dec_core);
