@@ -107,10 +107,14 @@ use cpu::php::Php;
 use cpu::pla::Pla;
 use cpu::plp::Plp;
 
-use cpu::asl::asl_a::AslA;
-use cpu::lsr::lsr_a::LsrA;
-use cpu::rol::rol_a::RolA;
-use cpu::ror::ror_a::RorA;
+use cpu::asl_a::AslA;
+use cpu::asl_zp::AslZp;
+use cpu::lsr_a::LsrA;
+use cpu::lsr_zp::LsrZp;
+use cpu::rol_a::RolA;
+use cpu::rol_zp::RolZp;
+use cpu::ror_a::RorA;
+use cpu::ror_zp::RorZp;
 
 enum State {
     FetchOpcode,
@@ -142,11 +146,13 @@ fn cycle(
     match state {
         State::FetchOpcode => {
             *start_cycle = *nr - 1;
+            // TODO: use array ?
             let op = cpu.read_from_pc();
             // println!("Fetching Opcode {:02x}", op);
             match op {
                 0x01 => add_opcode!(OraNdxInd, opcode, cpu),
                 0x05 => add_opcode!(OraZp, opcode, cpu),
+                0x06 => add_opcode!(AslZp, opcode, cpu),
                 0x08 => add_opcode!(Php, opcode, cpu),
                 0x09 => add_opcode!(OraImm, opcode, cpu),
                 0x0A => add_opcode!(AslA, opcode, cpu),
@@ -156,6 +162,7 @@ fn cycle(
                 0x21 => add_opcode!(AndNdxInd, opcode, cpu),
                 0x24 => add_opcode!(BitZp, opcode, cpu),
                 0x25 => add_opcode!(AndZp, opcode, cpu),
+                0x26 => add_opcode!(RolZp, opcode, cpu),
                 0x28 => add_opcode!(Plp, opcode, cpu),
                 0x29 => add_opcode!(AndImm, opcode, cpu),
                 0x2A => add_opcode!(RolA, opcode, cpu),
@@ -165,6 +172,7 @@ fn cycle(
                 0x40 => add_opcode!(Rti, opcode, cpu),
                 0x41 => add_opcode!(EorNdxInd, opcode, cpu),
                 0x45 => add_opcode!(EorZp, opcode, cpu),
+                0x46 => add_opcode!(LsrZp, opcode, cpu),
                 0x48 => add_opcode!(Pha, opcode, cpu),
                 0x49 => add_opcode!(EorImm, opcode, cpu),
                 0x4A => add_opcode!(LsrA, opcode, cpu),
@@ -174,6 +182,7 @@ fn cycle(
                 0x60 => add_opcode!(Rts, opcode, cpu),
                 0x61 => add_opcode!(AdcNdxInd, opcode, cpu),
                 0x65 => add_opcode!(AdcZp, opcode, cpu),
+                0x66 => add_opcode!(RorZp, opcode, cpu),
                 0x68 => add_opcode!(Pla, opcode, cpu),
                 0x69 => add_opcode!(AdcImm, opcode, cpu),
                 0x6A => add_opcode!(RorA, opcode, cpu),

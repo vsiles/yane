@@ -24,10 +24,6 @@ pub mod incr;
 pub mod decr;
 #[macro_use]
 pub mod trs;
-pub mod asl;
-pub mod lsr;
-pub mod rol;
-pub mod ror;
 pub mod rti;
 #[macro_use]
 pub mod bin_ndx_ind;
@@ -572,3 +568,151 @@ pub mod plp {
         }
     }
 }
+
+pub mod lsr_a {
+    use super::Cpu;
+    use super::OpCode;
+
+    pub struct LsrA {}
+
+    impl OpCode for LsrA {
+        fn new() -> LsrA {
+            LsrA {}
+        }
+
+        fn decode(&mut self, cpu: &mut Cpu) -> bool {
+            cpu.flags.carry = (cpu.A & 0x01) != 0;
+            let imm = cpu.A >> 1;
+            execute_load!(A, imm, cpu);
+            true
+        }
+
+        fn log(&self, cpu: &Cpu) {
+            let pc = cpu.pc - 1;
+            let code = cpu.mem.get(pc);
+            print!("{:04X}  {:02X}        LSR A", pc, code);
+            print!("{: <27}{}", "", cpu);
+        }
+    }
+}
+
+fn lsr_core(cpu: &mut Cpu, data: u8) -> u8 {
+    cpu.flags.carry = (data & 0x01) != 0;
+    let res = data >> 1;
+    cpu.flags.zero = res == 0;
+    cpu.flags.negative = (res & (0x80 as u8)) != 0;
+    res
+}
+
+declare_addr_zero_page2!(lsr_zp, LsrZp, LSR, super::lsr_core);
+
+pub mod asl_a {
+    use super::Cpu;
+    use super::OpCode;
+
+    pub struct AslA {}
+
+    impl OpCode for AslA {
+        fn new() -> AslA {
+            AslA {}
+        }
+
+        fn decode(&mut self, cpu: &mut Cpu) -> bool {
+            cpu.flags.carry = (cpu.A & 0x80) != 0;
+            let imm = cpu.A << 1;
+            execute_load!(A, imm, cpu);
+            true
+        }
+
+        fn log(&self, cpu: &Cpu) {
+            let pc = cpu.pc - 1;
+            let code = cpu.mem.get(pc);
+            print!("{:04X}  {:02X}        ASL A", pc, code,);
+            print!("{: <27}{}", "", cpu);
+        }
+    }
+}
+
+fn asl_core(cpu: &mut Cpu, data: u8) -> u8 {
+    cpu.flags.carry = (data & 0x80) != 0;
+    let res = data << 1;
+    cpu.flags.zero = res == 0;
+    cpu.flags.negative = (res & (0x80 as u8)) != 0;
+    res
+}
+
+declare_addr_zero_page2!(asl_zp, AslZp, ASL, super::asl_core);
+
+pub mod ror_a {
+    use super::Cpu;
+    use super::OpCode;
+
+    pub struct RorA {}
+
+    impl OpCode for RorA {
+        fn new() -> RorA {
+            RorA {}
+        }
+
+        fn decode(&mut self, cpu: &mut Cpu) -> bool {
+            let imm: u8 = (cpu.A >> 1) | (if cpu.flags.carry { 0x80 } else { 0 });
+            cpu.flags.carry = (cpu.A & 0x01) != 0;
+            execute_load!(A, imm, cpu);
+            true
+        }
+
+        fn log(&self, cpu: &Cpu) {
+            let pc = cpu.pc - 1;
+            let code = cpu.mem.get(pc);
+            print!("{:04X}  {:02X}        ROR A", pc, code,);
+            print!("{: <27}{}", "", cpu);
+        }
+    }
+}
+
+fn ror_core(cpu: &mut Cpu, data: u8) -> u8 {
+    let res: u8 = (data >> 1) | (if cpu.flags.carry { 0x80 } else { 0 });
+    cpu.flags.carry = (data & 0x01) != 0;
+    cpu.flags.zero = res == 0;
+    cpu.flags.negative = (res & (0x80 as u8)) != 0;
+    res
+}
+
+declare_addr_zero_page2!(ror_zp, RorZp, ROR, super::ror_core);
+
+pub mod rol_a {
+    use super::Cpu;
+    use super::OpCode;
+
+    pub struct RolA {}
+
+    impl OpCode for RolA {
+        fn new() -> RolA {
+            RolA {}
+        }
+
+        fn decode(&mut self, cpu: &mut Cpu) -> bool {
+            let imm = (cpu.A << 1) | (if cpu.flags.carry { 0x01 } else { 0 });
+            cpu.flags.carry = (cpu.A & 0x80) != 0;
+            execute_load!(A, imm, cpu);
+            true
+        }
+
+        fn log(&self, cpu: &Cpu) {
+            let pc = cpu.pc - 1;
+            let code = cpu.mem.get(pc);
+            print!("{:04X}  {:02X}        ROL A", pc, code,);
+            print!("{: <27}{}", "", cpu);
+        }
+    }
+}
+
+fn rol_core(cpu: &mut Cpu, data: u8) -> u8 {
+    let res: u8 = (data << 1) | (if cpu.flags.carry { 0x01 } else { 0 });
+    cpu.flags.carry = (data & 0x80) != 0;
+    cpu.flags.zero = res == 0;
+    cpu.flags.negative = (res & (0x80 as u8)) != 0;
+    res
+}
+
+declare_addr_zero_page2!(rol_zp, RolZp, ROL, super::rol_core);
