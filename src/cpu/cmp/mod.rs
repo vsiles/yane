@@ -1,6 +1,3 @@
-#[macro_use]
-mod cmp_imm;
-
 use super::Cpu;
 use super::OpCode;
 

@@ -1,6 +1,4 @@
 #[macro_use]
-mod load_imm;
-#[macro_use]
 mod load_zp;
 #[macro_use]
 mod load_zp_reg;

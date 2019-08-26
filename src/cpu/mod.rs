@@ -32,20 +32,37 @@ pub mod rti;
 #[macro_use]
 pub mod bin_ndx_ind;
 #[macro_use]
-pub mod bin_imm;
-#[macro_use]
 pub mod bin_zp;
+#[macro_use]
+pub mod addr_mod_imm;
 
 pub use cpu::*;
 pub use opcode::OpCode;
 
 // ORA, AND, EOR
-declare_bin_imm!(ora_imm, OraImm, A, ORA, |x, y| {x | y});
-declare_bin_imm!(and_imm, AndImm, A, AND, |x, y| {x & y});
-declare_bin_imm!(eor_imm, EorImm, A, EOR, |x, y| {x ^ y});
+fn ora(cpu: &mut Cpu, imm: u8) {
+    let imm = imm | cpu.A;
+    execute_load!(A, imm, cpu);
+}
+
+fn and(cpu: &mut Cpu, imm: u8) {
+    let imm = imm & cpu.A;
+    execute_load!(A, imm, cpu);
+}
+
+fn eor(cpu: &mut Cpu, imm: u8) {
+    let imm = imm ^ cpu.A;
+    execute_load!(A, imm, cpu);
+}
+
+declare_addr_imm!(ora_imm, OraImm, ORA, super::ora);
+declare_addr_imm!(and_imm, AndImm, AND, super::and);
+declare_addr_imm!(eor_imm, EorImm, EOR, super::eor);
+
 declare_bin_ndx_ind!(ora_ndx_ind, OraNdxInd, A, ORA, |x, y| { x | y });
 declare_bin_ndx_ind!(and_ndx_ind, AndNdxInd, A, AND, |x, y| { x & y });
 declare_bin_ndx_ind!(eor_ndx_ind, EorNdxInd, A, EOR, |x, y| { x ^ y });
+
 declare_bin_zero_page!(ora_zp, OraZp, A, ORA, |x, y| {x | y});
 declare_bin_zero_page!(and_zp, AndZp, A, AND, |x, y| {x & y});
 declare_bin_zero_page!(eor_zp, EorZp, A, EOR, |x, y| {x ^ y});
@@ -114,14 +131,39 @@ declare_decr!(dex, DeX, X);
 declare_decr!(dey, DeY, Y);
 
 // CMP, CMX, CMY
-declare_cmp_imm!(cmp_imm, CmpImm, CMP, A);
-declare_cmp_imm!(cpx_imm, CpxImm, CPX, X);
-declare_cmp_imm!(cpy_imm, CpyImm, CPY, Y);
+macro_rules! cmp_impl {
+    ($name:ident, $reg:ident) => {
+        fn $name(cpu: &mut Cpu, imm: u8) { 
+            let (res, _) = cpu.$reg.overflowing_sub(imm);
+            cpu.flags.carry = cpu.$reg >= imm;
+            cpu.flags.zero = cpu.$reg == imm;
+            cpu.flags.negative = (res & 0x80) != 0;
+        }
+    };
+}
+cmp_impl!(cmp_a, A);
+cmp_impl!(cmp_x, X);
+cmp_impl!(cmp_y, Y);
+
+declare_addr_imm!(cmp_imm, CmpImm, CMP, super::cmp_a);
+declare_addr_imm!(cpx_imm, CpxImm, CPX, super::cmp_x);
+declare_addr_imm!(cpy_imm, CpyImm, CPY, super::cmp_y);
 
 // LDA, LDX, LDY
-declare_load_imm!(lda_imm, LdaImm, A);
-declare_load_imm!(ldx_imm, LdxImm, X);
-declare_load_imm!(ldy_imm, LdyImm, Y);
+macro_rules! load_impl {
+    ($name:ident, $reg:ident) => {
+        fn $name(cpu: &mut Cpu, imm: u8) { 
+            execute_load!($reg, imm, cpu);
+        }
+    };
+}
+load_impl!(load_a, A);
+load_impl!(load_x, X);
+load_impl!(load_y, Y);
+
+declare_addr_imm!(lda_imm, LdaImm, LDA, super::load_a);
+declare_addr_imm!(ldx_imm, LdxImm, LDX, super::load_x);
+declare_addr_imm!(ldy_imm, LdyImm, LDY, super::load_y);
 
 declare_load_zero_page!(lda_zero_page, LdaZeroPage, A);
 declare_load_zero_page!(ldx_zero_page, LdxZeroPage, X);
