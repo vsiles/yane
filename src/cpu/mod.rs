@@ -33,6 +33,8 @@ pub mod rti;
 pub mod bin_ndx_ind;
 #[macro_use]
 pub mod bin_imm;
+#[macro_use]
+pub mod bin_zp;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -44,6 +46,9 @@ declare_bin_imm!(eor_imm, EorImm, A, EOR, |x, y| {x ^ y});
 declare_bin_ndx_ind!(ora_ndx_ind, OraNdxInd, A, ORA, |x, y| { x | y });
 declare_bin_ndx_ind!(and_ndx_ind, AndNdxInd, A, AND, |x, y| { x & y });
 declare_bin_ndx_ind!(eor_ndx_ind, EorNdxInd, A, EOR, |x, y| { x ^ y });
+declare_bin_zero_page!(ora_zp, OraZp, A, ORA, |x, y| {x | y});
+declare_bin_zero_page!(and_zp, AndZp, A, AND, |x, y| {x & y});
+declare_bin_zero_page!(eor_zp, EorZp, A, EOR, |x, y| {x ^ y});
 
 // TAX, TAY, TSX, TXA, TXS, TYA
 declare_transfert!(tax, TAX, A, X);
