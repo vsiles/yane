@@ -91,18 +91,23 @@ use cpu::bit_zp::BitZp;
 use cpu::adc_imm::AdcImm;
 use cpu::adc_zp::AdcZp;
 use cpu::adc::adc_ndx_ind::AdcNdxInd;
+use cpu::adc_abs::AdcAbs;
 use cpu::and_imm::AndImm;
 use cpu::and_ndx_ind::AndNdxInd;
 use cpu::and_zp::AndZp;
+use cpu::and_abs::AndAbs;
 use cpu::eor_imm::EorImm;
 use cpu::eor_ndx_ind::EorNdxInd;
 use cpu::eor_zp::EorZp;
+use cpu::eor_abs::EorAbs;
 use cpu::ora_imm::OraImm;
 use cpu::ora_ndx_ind::OraNdxInd;
 use cpu::ora_zp::OraZp;
+use cpu::ora_abs::OraAbs;
 use cpu::sbc_imm::SbcImm;
 use cpu::sbc_zp::SbcZp;
 use cpu::sbc::SbcNdxInd;
+use cpu::sbc_abs::SbcAbs;
 
 use cpu::pha::Pha;
 use cpu::php::Php;
@@ -158,6 +163,7 @@ fn cycle(
                 0x08 => add_opcode!(Php, opcode, cpu),
                 0x09 => add_opcode!(OraImm, opcode, cpu),
                 0x0A => add_opcode!(AslA, opcode, cpu),
+                0x0D => add_opcode!(OraAbs, opcode, cpu),
                 0x10 => add_opcode!(Bpl, opcode, cpu),
                 0x18 => add_opcode!(Clc, opcode, cpu),
                 0x20 => add_opcode!(Jsr, opcode, cpu),
@@ -169,6 +175,7 @@ fn cycle(
                 0x29 => add_opcode!(AndImm, opcode, cpu),
                 0x2A => add_opcode!(RolA, opcode, cpu),
                 0x2c => add_opcode!(BitAbs, opcode, cpu),
+                0x2D => add_opcode!(AndAbs, opcode, cpu),
                 0x30 => add_opcode!(Bmi, opcode, cpu),
                 0x38 => add_opcode!(Sec, opcode, cpu),
                 0x40 => add_opcode!(Rti, opcode, cpu),
@@ -179,6 +186,7 @@ fn cycle(
                 0x49 => add_opcode!(EorImm, opcode, cpu),
                 0x4A => add_opcode!(LsrA, opcode, cpu),
                 0x4C => add_opcode!(Jmp, opcode, cpu),
+                0x4D => add_opcode!(EorAbs, opcode, cpu),
                 0x50 => add_opcode!(Bvc, opcode, cpu),
                 0x58 => add_opcode!(Cli, opcode, cpu),
                 0x60 => add_opcode!(Rts, opcode, cpu),
@@ -188,6 +196,7 @@ fn cycle(
                 0x68 => add_opcode!(Pla, opcode, cpu),
                 0x69 => add_opcode!(AdcImm, opcode, cpu),
                 0x6A => add_opcode!(RorA, opcode, cpu),
+                0x6D => add_opcode!(AdcAbs, opcode, cpu),
                 0x70 => add_opcode!(Bvs, opcode, cpu),
                 0x78 => add_opcode!(Sei, opcode, cpu),
                 0x81 => add_opcode!(StaNdxInd, opcode, cpu),
@@ -249,6 +258,7 @@ fn cycle(
                 0xE8 => add_opcode!(InX, opcode, cpu),
                 0xE9 => add_opcode!(SbcImm, opcode, cpu),
                 0xEA => add_opcode!(Nop, opcode, cpu),
+                0xED => add_opcode!(SbcAbs, opcode, cpu),
                 0xF0 => add_opcode!(Beq, opcode, cpu),
                 0xF8 => add_opcode!(Sed, opcode, cpu),
                 _ => {

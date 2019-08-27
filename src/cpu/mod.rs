@@ -31,6 +31,8 @@ pub mod bin_ndx_ind;
 pub mod addr_mod_imm;
 #[macro_use]
 pub mod addr_mod_zp;
+#[macro_use]
+pub mod addr_mod_abs;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -59,6 +61,7 @@ fn adc_addr(cpu: &mut Cpu, val: usize) {
 
 declare_addr_imm!(adc_imm, AdcImm, ADC, super::adc_imm);
 declare_addr_zero_page!(adc_zp, AdcZp, ADC, super::adc_addr);
+declare_addr_abs!(adc_abs, AdcAbs, ADC, super::adc_addr);
 
 // SBC
 // https://stackoverflow.com/questions/29193303/6502-emulation-proper-way-to-implement-adc-and-sbc
@@ -88,6 +91,7 @@ fn sbc_addr(cpu: &mut Cpu, val: usize) {
 
 declare_addr_imm!(sbc_imm, SbcImm, SBC, super::sbc_imm);
 declare_addr_zero_page!(sbc_zp, SbcZp, SBC, super::sbc_addr);
+declare_addr_abs!(sbc_abs, SbcAbs, SBC, super::sbc_addr);
 
 // ORA, AND, EOR
 macro_rules! bool_imm_impl {
@@ -127,6 +131,10 @@ declare_bin_ndx_ind!(eor_ndx_ind, EorNdxInd, A, EOR, |x, y| { x ^ y });
 declare_addr_zero_page!(ora_zp, OraZp, ORA, super::ora_addr);
 declare_addr_zero_page!(and_zp, AndZp, AND, super::and_addr);
 declare_addr_zero_page!(eor_zp, EorZp, EOR, super::eor_addr);
+
+declare_addr_abs!(ora_abs, OraAbs, ORA, super::ora_addr);
+declare_addr_abs!(and_abs, AndAbs, AND, super::and_addr);
+declare_addr_abs!(eor_abs, EorAbs, EOR, super::eor_addr);
 
 // TAX, TAY, TSX, TXA, TXS, TYA
 declare_transfert!(tax, TAX, A, X);
