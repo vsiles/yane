@@ -54,7 +54,6 @@ macro_rules! declare_addr_abs_reg {
                 let base = mk_addr!(low, high);
                 let addr = base.overflowing_add(cpu.$reg as u16).0;
                 let imm = cpu.mem.get(addr);
-                println!("Debuging:  loading {:#X} from {:#X}", imm, addr);
                 print!(
                     "{:04X}  {:02X} {:02X} {:02X}  {} ${:04X},{}",
                     pc,

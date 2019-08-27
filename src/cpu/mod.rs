@@ -32,6 +32,8 @@ pub mod addr_mod_imm;
 #[macro_use]
 pub mod addr_mod_zp;
 #[macro_use]
+pub mod addr_mod_zp_reg;
+#[macro_use]
 pub mod addr_mod_abs;
 #[macro_use]
 pub mod addr_mod_abs_reg;
@@ -69,6 +71,7 @@ declare_addr_abs!(AdcAbs, ADC, adc_addr);
 declare_addr_ind_y!(AdcIndY, ADC, adc_addr);
 declare_addr_abs_reg!(AdcAbsX, ADC, X, adc_addr);
 declare_addr_abs_reg!(AdcAbsY, ADC, Y, adc_addr);
+declare_addr_zero_page_reg!(AdcZpX, ADC, X, adc_addr);
 
 // SBC
 // https://stackoverflow.com/questions/29193303/6502-emulation-proper-way-to-implement-adc-and-sbc
@@ -102,6 +105,7 @@ declare_addr_abs!(SbcAbs, SBC, sbc_addr);
 declare_addr_ind_y!(SbcIndY, SBC, sbc_addr);
 declare_addr_abs_reg!(SbcAbsX, SBC, X, sbc_addr);
 declare_addr_abs_reg!(SbcAbsY, SBC, Y, sbc_addr);
+declare_addr_zero_page_reg!(SbcZpX, SBC, X, sbc_addr);
 
 // ORA, AND, EOR
 macro_rules! bool_imm_impl {
@@ -156,6 +160,10 @@ declare_addr_abs_reg!(AndAbsX, AND, X, and_addr);
 declare_addr_abs_reg!(AndAbsY, AND, Y, and_addr);
 declare_addr_abs_reg!(EorAbsX, EOR, X, eor_addr);
 declare_addr_abs_reg!(EorAbsY, EOR, Y, eor_addr);
+
+declare_addr_zero_page_reg!(OraZpX, ORA, X, ora_addr);
+declare_addr_zero_page_reg!(AndZpX, AND, X, and_addr);
+declare_addr_zero_page_reg!(EorZpX, EOR, X, eor_addr);
 
 // TAX, TAY, TSX, TXA, TXS, TYA
 declare_transfert!(TAX, A, X);
@@ -269,6 +277,8 @@ declare_addr_ind_y!(CmpIndY, CMP, cmp_addr_a);
 declare_addr_abs_reg!(CmpAbsX, CMP, X, cmp_addr_a);
 declare_addr_abs_reg!(CmpAbsY, CMP, Y, cmp_addr_a);
 
+declare_addr_zero_page_reg!(CmpZpX, CMP, X, cmp_addr_a);
+
 // LDA, LDX, LDY
 macro_rules! load_imm_impl {
     ($name:ident, $reg:ident) => {
@@ -304,9 +314,9 @@ declare_addr_zero_page!(LdaZeroPage, LDA, load_addr_a);
 declare_addr_zero_page!(LdxZeroPage, LDX, load_addr_x);
 declare_addr_zero_page!(LdyZeroPage, LDY, load_addr_y);
 
-declare_load_zero_page_reg!(lda_zero_page_x, LdaZeroPageX, A, X);
-declare_load_zero_page_reg!(ldy_zero_page_x, LdyZeroPageX, Y, X);
-declare_load_zero_page_reg!(ldx_zero_page_y, LdxZeroPageY, X, Y);
+declare_addr_zero_page_reg!(LdaZeroPageX, LDA, X, load_addr_a);
+declare_addr_zero_page_reg!(LdyZeroPageX, LDY, X, load_addr_y);
+declare_addr_zero_page_reg!(LdxZeroPageY, LDX, Y, load_addr_x);
 
 declare_addr_abs!(LdaAbs, LDA, load_addr_a);
 declare_addr_abs!(LdxAbs, LDX, load_addr_x);
@@ -338,9 +348,9 @@ declare_addr_zero_page!(StaZeroPage, STA, store_a);
 declare_addr_zero_page!(StxZeroPage, STX, store_x);
 declare_addr_zero_page!(StyZeroPage, STY, store_y);
 
-declare_store_zero_page_reg!(sta_zero_page_x, StaZeroPageX, A, X);
-declare_store_zero_page_reg!(stx_zero_page_y, StxZeroPageY, X, Y);
-declare_store_zero_page_reg!(sty_zero_page_x, StyZeroPageX, Y, X);
+declare_addr_zero_page_reg!(StaZeroPageX, STA, X, store_a);
+declare_addr_zero_page_reg!(StxZeroPageY, STX, Y, store_x);
+declare_addr_zero_page_reg!(StyZeroPageX, STY, X, store_y);
 
 declare_addr_abs!(StaAbs, STA, store_a);
 declare_addr_abs!(StxAbs, STX, store_x);

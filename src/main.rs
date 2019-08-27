@@ -7,149 +7,29 @@ mod format;
 mod memory;
 use memory::Memory;
 
-use cpu::TAX;
-use cpu::TAY;
-use cpu::TSX;
-use cpu::TXA;
-use cpu::TXS;
-use cpu::TYA;
-
-use cpu::DeX;
-use cpu::DeY;
-use cpu::InX;
-use cpu::InY;
-use cpu::IncZp;
-use cpu::IncAbs;
-use cpu::DecZp;
-use cpu::DecAbs;
-
-use cpu::CmpImm;
-use cpu::CpxImm;
-use cpu::CpyImm;
-use cpu::CmpZp;
-use cpu::CpxZp;
-use cpu::CpyZp;
-use cpu::cmp::CmpNdxInd;
-use cpu::CmpAbs;
-use cpu::CpxAbs;
-use cpu::CpyAbs;
-use cpu::CmpIndY;
-use cpu::CmpAbsX;
-use cpu::CmpAbsY;
-
-use cpu::LdaAbs;
-use cpu::LdaAbsX;
-use cpu::LdaAbsY;
-use cpu::LdaImm;
-use cpu::LdaIndY;
-use cpu::load::load_ndx_ind::LdaNdxInd;
-use cpu::LdaZeroPage;
-use cpu::lda_zero_page_x::LdaZeroPageX;
-use cpu::LdxAbs;
-use cpu::LdxAbsY;
-use cpu::LdxImm;
-use cpu::LdxZeroPage;
-use cpu::ldx_zero_page_y::LdxZeroPageY;
-use cpu::LdyAbs;
-use cpu::LdyAbsX;
-use cpu::LdyImm;
-use cpu::LdyZeroPage;
-use cpu::ldy_zero_page_x::LdyZeroPageX;
 use cpu::*;
+use cpu::jsr::*;
+use cpu::jmp::*;
+use cpu::nop::*;
+use cpu::rts::*;
+use cpu::rti::*;
+use cpu::opcode::OpCode;
 
-use cpu::StaAbs;
-use cpu::StaAbsX;
-use cpu::StaAbsY;
-use cpu::StaIndY;
+use cpu::cmp::CmpNdxInd;
+
+use cpu::load::load_ndx_ind::LdaNdxInd;
+
 use cpu::sta_ndx_ind::StaNdxInd;
-use cpu::StaZeroPage;
-use cpu::sta_zero_page_x::StaZeroPageX;
-use cpu::StxAbs;
-use cpu::StxZeroPage;
-use cpu::stx_zero_page_y::StxZeroPageY;
-use cpu::StyAbs;
-use cpu::StyZeroPage;
-use cpu::sty_zero_page_x::StyZeroPageX;
 
-use cpu::Clc;
-use cpu::Cld;
-use cpu::Cli;
-use cpu::Clv;
-use cpu::jmp::Jmp;
-use cpu::jmp::JmpInd;
-use cpu::jsr::Jsr;
-use cpu::nop::Nop;
-use cpu::rti::Rti;
-use cpu::rts::Rts;
-use cpu::Sec;
-use cpu::Sed;
-use cpu::Sei;
-
-use cpu::Bcc;
-use cpu::Bcs;
-use cpu::Beq;
-use cpu::Bmi;
-use cpu::Bne;
-use cpu::Bpl;
-use cpu::Bvc;
-use cpu::Bvs;
-
-use cpu::BitAbs;
-use cpu::BitZp;
-
-use cpu::AdcImm;
-use cpu::AdcZp;
 use cpu::adc::adc_ndx_ind::AdcNdxInd;
-use cpu::AdcAbs;
-use cpu::AdcIndY;
-use cpu::AdcAbsX;
-use cpu::AdcAbsY;
-use cpu::AndImm;
+
 use cpu::and_ndx_ind::AndNdxInd;
-use cpu::AndZp;
-use cpu::AndAbs;
-use cpu::AndIndY;
-use cpu::AndAbsX;
-use cpu::AndAbsY;
-use cpu::EorImm;
+
 use cpu::eor_ndx_ind::EorNdxInd;
-use cpu::EorZp;
-use cpu::EorAbs;
-use cpu::EorIndY;
-use cpu::EorAbsX;
-use cpu::EorAbsY;
-use cpu::OraImm;
+
 use cpu::ora_ndx_ind::OraNdxInd;
-use cpu::OraZp;
-use cpu::OraAbs;
-use cpu::OraIndY;
-use cpu::OraAbsX;
-use cpu::OraAbsY;
-use cpu::SbcImm;
-use cpu::SbcZp;
+
 use cpu::sbc::SbcNdxInd;
-use cpu::SbcAbs;
-use cpu::SbcIndY;
-use cpu::SbcAbsX;
-use cpu::SbcAbsY;
-
-use cpu::Pha;
-use cpu::Php;
-use cpu::Pla;
-use cpu::Plp;
-
-use cpu::AslA;
-use cpu::AslZp;
-use cpu::AslAbs;
-use cpu::LsrA;
-use cpu::LsrZp;
-use cpu::LsrAbs;
-use cpu::RolA;
-use cpu::RolZp;
-use cpu::RolAbs;
-use cpu::RorA;
-use cpu::RorZp;
-use cpu::RorAbs;
 
 enum State {
     FetchOpcode,
@@ -195,6 +75,7 @@ fn cycle(
                 0x0D => add_opcode!(OraAbs, opcode, cpu),
                 0x0E => add_opcode!(AslAbs, opcode, cpu),
                 0x10 => add_opcode!(Bpl, opcode, cpu),
+                0x15 => add_opcode!(OraZpX, opcode, cpu),
                 0x18 => add_opcode!(Clc, opcode, cpu),
                 0x1D => add_opcode!(OraAbsX, opcode, cpu),
                 0x19 => add_opcode!(OraAbsY, opcode, cpu),
@@ -211,6 +92,7 @@ fn cycle(
                 0x2E => add_opcode!(RolAbs, opcode, cpu),
                 0x30 => add_opcode!(Bmi, opcode, cpu),
                 0x31 => add_opcode!(AndIndY, opcode, cpu),
+                0x35 => add_opcode!(AndZpX, opcode, cpu),
                 0x38 => add_opcode!(Sec, opcode, cpu),
                 0x39 => add_opcode!(AndAbsY, opcode, cpu),
                 0x3D => add_opcode!(AndAbsX, opcode, cpu),
@@ -226,6 +108,7 @@ fn cycle(
                 0x4E => add_opcode!(LsrAbs, opcode, cpu),
                 0x50 => add_opcode!(Bvc, opcode, cpu),
                 0x51 => add_opcode!(EorIndY, opcode, cpu),
+                0x55 => add_opcode!(EorZpX, opcode, cpu),
                 0x58 => add_opcode!(Cli, opcode, cpu),
                 0x59 => add_opcode!(EorAbsY, opcode, cpu),
                 0x5D => add_opcode!(EorAbsX, opcode, cpu),
@@ -241,6 +124,7 @@ fn cycle(
                 0x6E => add_opcode!(RorAbs, opcode, cpu),
                 0x70 => add_opcode!(Bvs, opcode, cpu),
                 0x71 => add_opcode!(AdcIndY, opcode, cpu),
+                0x75 => add_opcode!(AdcZpX, opcode, cpu),
                 0x78 => add_opcode!(Sei, opcode, cpu),
                 0x79 => add_opcode!(AdcAbsY, opcode, cpu),
                 0x7D => add_opcode!(AdcAbsX, opcode, cpu),
@@ -298,6 +182,7 @@ fn cycle(
                 0xCE => add_opcode!(DecAbs, opcode, cpu),
                 0xD0 => add_opcode!(Bne, opcode, cpu),
                 0xD1 => add_opcode!(CmpIndY, opcode, cpu),
+                0xD5 => add_opcode!(CmpZpX, opcode, cpu),
                 0xD8 => add_opcode!(Cld, opcode, cpu),
                 0xD9 => add_opcode!(CmpAbsY, opcode,  cpu),
                 0xDD => add_opcode!(CmpAbsX, opcode,  cpu),
@@ -314,6 +199,7 @@ fn cycle(
                 0xEE => add_opcode!(IncAbs, opcode, cpu),
                 0xF0 => add_opcode!(Beq, opcode, cpu),
                 0xF1 => add_opcode!(SbcIndY, opcode, cpu),
+                0xF5 => add_opcode!(SbcZpX, opcode, cpu),
                 0xF8 => add_opcode!(Sed, opcode, cpu),
                 0xF9 => add_opcode!(SbcAbsY, opcode, cpu),
                 0xFD => add_opcode!(SbcAbsX, opcode, cpu),
