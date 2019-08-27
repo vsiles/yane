@@ -59,9 +59,9 @@ fn adc_addr(cpu: &mut Cpu, val: usize) {
     adc_core(cpu, imm)
 }
 
-declare_addr_imm!(adc_imm, AdcImm, ADC, super::adc_imm);
-declare_addr_zero_page!(adc_zp, AdcZp, ADC, super::adc_addr);
-declare_addr_abs!(adc_abs, AdcAbs, ADC, super::adc_addr);
+declare_addr_imm!(AdcImm, ADC, adc_imm);
+declare_addr_zero_page!(AdcZp, ADC, adc_addr);
+declare_addr_abs!(AdcAbs, ADC, adc_addr);
 
 // SBC
 // https://stackoverflow.com/questions/29193303/6502-emulation-proper-way-to-implement-adc-and-sbc
@@ -89,9 +89,9 @@ fn sbc_addr(cpu: &mut Cpu, val: usize) {
     sbc_core(cpu, imm)
 }
 
-declare_addr_imm!(sbc_imm, SbcImm, SBC, super::sbc_imm);
-declare_addr_zero_page!(sbc_zp, SbcZp, SBC, super::sbc_addr);
-declare_addr_abs!(sbc_abs, SbcAbs, SBC, super::sbc_addr);
+declare_addr_imm!(SbcImm, SBC, sbc_imm);
+declare_addr_zero_page!(SbcZp, SBC, sbc_addr);
+declare_addr_abs!(SbcAbs, SBC, sbc_addr);
 
 // ORA, AND, EOR
 macro_rules! bool_imm_impl {
@@ -120,84 +120,74 @@ bool_addr_impl!(ora_addr, |x, y| { x | y });
 bool_addr_impl!(and_addr, |x, y| { x & y });
 bool_addr_impl!(eor_addr, |x, y| { x ^ y });
 
-declare_addr_imm!(ora_imm, OraImm, ORA, super::ora_imm);
-declare_addr_imm!(and_imm, AndImm, AND, super::and_imm);
-declare_addr_imm!(eor_imm, EorImm, EOR, super::eor_imm);
+declare_addr_imm!(OraImm, ORA, ora_imm);
+declare_addr_imm!(AndImm, AND, and_imm);
+declare_addr_imm!(EorImm, EOR, eor_imm);
 
 declare_bin_ndx_ind!(ora_ndx_ind, OraNdxInd, A, ORA, |x, y| { x | y });
 declare_bin_ndx_ind!(and_ndx_ind, AndNdxInd, A, AND, |x, y| { x & y });
 declare_bin_ndx_ind!(eor_ndx_ind, EorNdxInd, A, EOR, |x, y| { x ^ y });
 
-declare_addr_zero_page!(ora_zp, OraZp, ORA, super::ora_addr);
-declare_addr_zero_page!(and_zp, AndZp, AND, super::and_addr);
-declare_addr_zero_page!(eor_zp, EorZp, EOR, super::eor_addr);
+declare_addr_zero_page!(OraZp, ORA, ora_addr);
+declare_addr_zero_page!(AndZp, AND, and_addr);
+declare_addr_zero_page!(EorZp, EOR, eor_addr);
 
-declare_addr_abs!(ora_abs, OraAbs, ORA, super::ora_addr);
-declare_addr_abs!(and_abs, AndAbs, AND, super::and_addr);
-declare_addr_abs!(eor_abs, EorAbs, EOR, super::eor_addr);
+declare_addr_abs!(OraAbs, ORA, ora_addr);
+declare_addr_abs!(AndAbs, AND, and_addr);
+declare_addr_abs!(EorAbs, EOR, eor_addr);
 
 // TAX, TAY, TSX, TXA, TXS, TYA
-declare_transfert!(tax, TAX, A, X);
-declare_transfert!(tay, TAY, A, Y);
-declare_transfert!(txa, TXA, X, A);
-declare_transfert!(tya, TYA, Y, A);
+declare_transfert!(TAX, A, X);
+declare_transfert!(TAY, A, Y);
+declare_transfert!(TXA, X, A);
+declare_transfert!(TYA, Y, A);
 
-pub mod tsx {
-    use super::Cpu;
-    use super::OpCode;
+pub struct TSX {}
 
-    pub struct TSX {}
+impl OpCode for TSX {
+    fn new() -> TSX {
+        TSX {}
+    }
 
-    impl OpCode for TSX {
-        fn new() -> TSX {
-            TSX {}
-        }
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        let imm = cpu.sp;
+        execute_load!(X, imm, cpu);
+        true
+    }
 
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            let imm = cpu.sp;
-            execute_load!(X, imm, cpu);
-            true
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            print!("{:04X}  {:02X}        TSX", pc, code);
-            print!("{: <29}{}", "", cpu)
-        }
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        print!("{:04X}  {:02X}        TSX", pc, code);
+        print!("{: <29}{}", "", cpu)
     }
 }
 
-pub mod txs {
-    use super::Cpu;
-    use super::OpCode;
+pub struct TXS {}
 
-    pub struct TXS {}
+impl OpCode for TXS {
+    fn new() -> TXS {
+        TXS {}
+    }
 
-    impl OpCode for TXS {
-        fn new() -> TXS {
-            TXS {}
-        }
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        cpu.sp = cpu.X;
+        true
+    }
 
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            cpu.sp = cpu.X;
-            true
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            print!("{:04X}  {:02X}        TXS", pc, code);
-            print!("{: <29}{}", "", cpu)
-        }
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        print!("{:04X}  {:02X}        TXS", pc, code);
+        print!("{: <29}{}", "", cpu)
     }
 }
 
 // INX, INY, DEX, DEY
-declare_incr!(inx, InX, X);
-declare_incr!(iny, InY, Y);
-declare_decr!(dex, DeX, X);
-declare_decr!(dey, DeY, Y);
+declare_incr!(InX, X);
+declare_incr!(InY, Y);
+declare_decr!(DeX, X);
+declare_decr!(DeY, Y);
 
 // CMP, CMX, CMY
 macro_rules! cmp_core {
@@ -227,9 +217,9 @@ cmp_imm_impl!(cmp_imm_a, cmp_a);
 cmp_imm_impl!(cmp_imm_x, cmp_x);
 cmp_imm_impl!(cmp_imm_y, cmp_y);
 
-declare_addr_imm!(cmp_imm, CmpImm, CMP, super::cmp_imm_a);
-declare_addr_imm!(cpx_imm, CpxImm, CPX, super::cmp_imm_x);
-declare_addr_imm!(cpy_imm, CpyImm, CPY, super::cmp_imm_y);
+declare_addr_imm!(CmpImm, CMP, cmp_imm_a);
+declare_addr_imm!(CpxImm, CPX, cmp_imm_x);
+declare_addr_imm!(CpyImm, CPY, cmp_imm_y);
 
 macro_rules! cmp_addr_impl {
     ($name:ident, $core:ident) => {
@@ -245,9 +235,9 @@ cmp_addr_impl!(cmp_addr_a, cmp_a);
 cmp_addr_impl!(cmp_addr_x, cmp_x);
 cmp_addr_impl!(cmp_addr_y, cmp_y);
 
-declare_addr_zero_page!(cmp_zp, CmpZp, CMP, super::cmp_addr_a);
-declare_addr_zero_page!(cpx_zp, CpxZp, CPX, super::cmp_addr_x);
-declare_addr_zero_page!(cpy_zp, CpyZp, CPY, super::cmp_addr_y);
+declare_addr_zero_page!(CmpZp, CMP, cmp_addr_a);
+declare_addr_zero_page!(CpxZp, CPX, cmp_addr_x);
+declare_addr_zero_page!(CpyZp, CPY, cmp_addr_y);
 
 // LDA, LDX, LDY
 macro_rules! load_imm_impl {
@@ -276,13 +266,13 @@ load_addr_impl!(load_addr_a, A);
 load_addr_impl!(load_addr_x, X);
 load_addr_impl!(load_addr_y, Y);
 
-declare_addr_imm!(lda_imm, LdaImm, LDA, super::load_imm_a);
-declare_addr_imm!(ldx_imm, LdxImm, LDX, super::load_imm_x);
-declare_addr_imm!(ldy_imm, LdyImm, LDY, super::load_imm_y);
+declare_addr_imm!(LdaImm, LDA, load_imm_a);
+declare_addr_imm!(LdxImm, LDX, load_imm_x);
+declare_addr_imm!(LdyImm, LDY, load_imm_y);
 
-declare_addr_zero_page!(lda_zero_page, LdaZeroPage, LDA, super::load_addr_a);
-declare_addr_zero_page!(ldx_zero_page, LdxZeroPage, LDX, super::load_addr_x);
-declare_addr_zero_page!(ldy_zero_page, LdyZeroPage, LDY, super::load_addr_y);
+declare_addr_zero_page!(LdaZeroPage, LDA, load_addr_a);
+declare_addr_zero_page!(LdxZeroPage, LDX, load_addr_x);
+declare_addr_zero_page!(LdyZeroPage, LDY, load_addr_y);
 
 declare_load_zero_page_reg!(lda_zero_page_x, LdaZeroPageX, A, X);
 declare_load_zero_page_reg!(ldy_zero_page_x, LdyZeroPageX, Y, X);
@@ -312,9 +302,9 @@ store_impl!(store_a, A);
 store_impl!(store_x, X);
 store_impl!(store_y, Y);
 
-declare_addr_zero_page!(sta_zero_page, StaZeroPage, STA, super::store_a);
-declare_addr_zero_page!(stx_zero_page, StxZeroPage, STX, super::store_x);
-declare_addr_zero_page!(sty_zero_page, StyZeroPage, STY, super::store_y);
+declare_addr_zero_page!(StaZeroPage, STA, store_a);
+declare_addr_zero_page!(StxZeroPage, STX, store_x);
+declare_addr_zero_page!(StyZeroPage, STY, store_y);
 
 declare_store_zero_page_reg!(sta_zero_page_x, StaZeroPageX, A, X);
 declare_store_zero_page_reg!(stx_zero_page_y, StxZeroPageY, X, Y);
@@ -332,79 +322,74 @@ declare_store_ndx_ind!(sta_ndx_ind, StaNdxInd, A);
 declare_store_ind_ndx!(sta_ind_ndx, StaIndNdx, A);
 
 // SEC, SED, SEI, CLC, CLD, CLI
-declare_flags_opcode!(sec, Sec, SEC, carry, true);
-declare_flags_opcode!(sed, Sed, SED, decimal_mode, true);
-declare_flags_opcode!(sei, Sei, SEI, int_disable, true);
-declare_flags_opcode!(clc, Clc, CLC, carry, false);
-declare_flags_opcode!(cld, Cld, CLD, decimal_mode, false);
-declare_flags_opcode!(cli, Cli, CLI, int_disable, false);
-declare_flags_opcode!(clv, Clv, CLV, overflow, false);
+declare_flags_opcode!(Sec, SEC, carry, true);
+declare_flags_opcode!(Sed, SED, decimal_mode, true);
+declare_flags_opcode!(Sei, SEI, int_disable, true);
+declare_flags_opcode!(Clc, CLC, carry, false);
+declare_flags_opcode!(Cld, CLD, decimal_mode, false);
+declare_flags_opcode!(Cli, CLI, int_disable, false);
+declare_flags_opcode!(Clv, CLV, overflow, false);
 
 // Branching
-declare_branch!(bcs, Bcs, carry, true, BCS);
-declare_branch!(bcc, Bcc, carry, false, BCC);
-declare_branch!(beq, Beq, zero, true, BEQ);
-declare_branch!(bne, Bne, zero, false, BNE);
-declare_branch!(bvs, Bvs, overflow, true, BVS);
-declare_branch!(bvc, Bvc, overflow, false, BVC);
-declare_branch!(bpl, Bpl, negative, false, BPL);
-declare_branch!(bmi, Bmi, negative, true, BMI);
+declare_branch!(Bcs, carry, true, BCS);
+declare_branch!(Bcc, carry, false, BCC);
+declare_branch!(Beq, zero, true, BEQ);
+declare_branch!(Bne, zero, false, BNE);
+declare_branch!(Bvs, overflow, true, BVS);
+declare_branch!(Bvc, overflow, false, BVC);
+declare_branch!(Bpl, negative, false, BPL);
+declare_branch!(Bmi, negative, true, BMI);
 
 // BIT
-pub mod bit_abs {
-    use super::super::Cpu;
-    use super::super::OpCode;
+pub struct BitAbs {
+    low: u8,
+    high: u8,
+    imm: u8,
+    state: usize,
+}
 
-    pub struct BitAbs {
-        low: u8,
-        high: u8,
-        imm: u8,
-        state: usize,
+impl OpCode for BitAbs {
+    fn new() -> BitAbs {
+        BitAbs {
+            low: 0,
+            high: 0,
+            imm: 0,
+            state: 0,
+        }
     }
 
-    impl OpCode for BitAbs {
-        fn new() -> BitAbs {
-            BitAbs {
-                low: 0,
-                high: 0,
-                imm: 0,
-                state: 0,
-            }
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        if self.state == 0 {
+            self.low = cpu.read_from_pc();
+            self.state = 1;
+            false
+        } else if self.state == 1 {
+            self.high = cpu.read_from_pc();
+            self.state = 2;
+            false
+        } else {
+            let addr: u16 = mk_addr!(self.low, self.high);
+            self.imm = cpu.mem.get(addr);
+            let val = cpu.A & self.imm;
+            cpu.flags.zero = val == 0;
+            cpu.flags.overflow = (self.imm & 0x40) != 0;
+            cpu.flags.negative = (self.imm & 0x80) != 0;
+            true
         }
+    }
 
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            if self.state == 0 {
-                self.low = cpu.read_from_pc();
-                self.state = 1;
-                false
-            } else if self.state == 1 {
-                self.high = cpu.read_from_pc();
-                self.state = 2;
-                false
-            } else {
-                let addr: u16 = mk_addr!(self.low, self.high);
-                self.imm = cpu.mem.get(addr);
-                let val = cpu.A & self.imm;
-                cpu.flags.zero = val == 0;
-                cpu.flags.overflow = (self.imm & 0x40) != 0;
-                cpu.flags.negative = (self.imm & 0x80) != 0;
-                true
-            }
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            let low = cpu.mem.get(pc + 1);
-            let high = cpu.mem.get(pc + 2);
-            let addr = mk_addr!(low, high);
-            let imm = cpu.mem.get(addr);
-            print!(
-                "{:04X}  {:02X} {:02X} {:02X}  BIT ${:04X}",
-                pc, code, low, high, addr
-            );
-            print!(" = {:02X} {: >17}{}", imm, "", cpu);
-        }
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        let low = cpu.mem.get(pc + 1);
+        let high = cpu.mem.get(pc + 2);
+        let addr = mk_addr!(low, high);
+        let imm = cpu.mem.get(addr);
+        print!(
+            "{:04X}  {:02X} {:02X} {:02X}  BIT ${:04X}",
+            pc, code, low, high, addr
+        );
+        print!(" = {:02X} {: >17}{}", imm, "", cpu);
     }
 }
 
@@ -417,185 +402,160 @@ fn bit(cpu: &mut Cpu, val: usize) {
     cpu.flags.negative = (imm & 0x80) != 0
 }
 
-declare_addr_zero_page!(bit_zp, BitZp, BIT, super::bit);
+declare_addr_zero_page!(BitZp, BIT, bit);
 
-pub mod php {
-    use super::super::Cpu;
-    use super::super::OpCode;
-
-    pub struct Php {
-        state: usize,
-    }
-
-    impl OpCode for Php {
-        fn new() -> Php {
-            Php { state: 0 }
-        }
-
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            if self.state == 0 {
-                let _ = cpu.mem.get(cpu.pc);
-                self.state = 1;
-                false
-            } else {
-                // see https://wiki.nesdev.com/w/index.php/Status_flags
-                // with PHP, bit 4 and 5 are always set to one
-                let val = cpu.flags.to_p() | 0x30;
-                push!(cpu, val);
-                true
-            }
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            print!("{:04X}  {:02X}        PHP", pc, code);
-            print!("{: >29}{}", "", cpu)
-        }
-    }
+pub struct Php {
+    state: usize,
 }
 
-pub mod pha {
-    use super::super::Cpu;
-    use super::super::OpCode;
-
-    pub struct Pha {
-        state: usize,
+impl OpCode for Php {
+    fn new() -> Php {
+        Php { state: 0 }
     }
 
-    impl OpCode for Pha {
-        fn new() -> Pha {
-            Pha { state: 0 }
-        }
-
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            if self.state == 0 {
-                let _ = cpu.mem.get(cpu.pc);
-                self.state = 1;
-                false
-            } else {
-                push!(cpu, cpu.A);
-                true
-            }
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            print!("{:04X}  {:02X}        PHA", pc, code);
-            print!("{: >29}{}", "", cpu)
-        }
-    }
-}
-
-pub mod pla {
-    use super::super::Cpu;
-    use super::super::OpCode;
-
-    pub struct Pla {
-        state: usize,
-    }
-
-    impl OpCode for Pla {
-        fn new() -> Pla {
-            Pla { state: 0 }
-        }
-
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            if self.state == 0 {
-                let _ = cpu.mem.get(cpu.pc);
-                self.state = 1;
-                false
-            } else if self.state == 1 {
-                let (sp, _) = cpu.sp.overflowing_add(1);
-                cpu.sp = sp;
-                self.state = 2;
-                false
-            } else {
-                let sp = mk_addr!(cpu.sp, 0x01 as usize);
-                // see https://wiki.nesdev.com/w/index.php/Status_flags
-                // with PHP, bit 4 and 5 are always set to one
-                cpu.A = cpu.mem.get(sp);
-                cpu.flags.zero = cpu.A == 0;
-                cpu.flags.negative = (cpu.A & 0x80) != 0;
-                true
-            }
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            print!("{:04X}  {:02X}        PLA", pc, code);
-            print!("{: >29}{}", "", cpu)
-        }
-    }
-}
-
-pub mod plp {
-    use super::super::Cpu;
-    use super::super::OpCode;
-
-    pub struct Plp {
-        state: usize,
-    }
-
-    impl OpCode for Plp {
-        fn new() -> Plp {
-            Plp { state: 0 }
-        }
-
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            if self.state == 0 {
-                let _ = cpu.mem.get(cpu.pc);
-                self.state = 1;
-                false
-            } else if self.state == 1 {
-                let (sp, _) = cpu.sp.overflowing_add(1);
-                cpu.sp = sp;
-                self.state = 2;
-                false
-            } else {
-                let sp = mk_addr!(cpu.sp, 0x01 as usize);
-                // see https://wiki.nesdev.com/w/index.php/Status_flags
-                let imm = cpu.mem.get(sp);
-                cpu.flags.update(imm);
-                true
-            }
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            print!("{:04X}  {:02X}        PLP", pc, code);
-            print!("{: >29}{}", "", cpu)
-        }
-    }
-}
-
-pub mod lsr_a {
-    use super::Cpu;
-    use super::OpCode;
-
-    pub struct LsrA {}
-
-    impl OpCode for LsrA {
-        fn new() -> LsrA {
-            LsrA {}
-        }
-
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            cpu.flags.carry = (cpu.A & 0x01) != 0;
-            let imm = cpu.A >> 1;
-            execute_load!(A, imm, cpu);
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        if self.state == 0 {
+            let _ = cpu.mem.get(cpu.pc);
+            self.state = 1;
+            false
+        } else {
+            // see https://wiki.nesdev.com/w/index.php/Status_flags
+            // with PHP, bit 4 and 5 are always set to one
+            let val = cpu.flags.to_p() | 0x30;
+            push!(cpu, val);
             true
         }
+    }
 
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            print!("{:04X}  {:02X}        LSR A", pc, code);
-            print!("{: <27}{}", "", cpu);
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        print!("{:04X}  {:02X}        PHP", pc, code);
+        print!("{: >29}{}", "", cpu)
+    }
+}
+
+pub struct Pha {
+    state: usize,
+}
+
+impl OpCode for Pha {
+    fn new() -> Pha {
+        Pha { state: 0 }
+    }
+
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        if self.state == 0 {
+            let _ = cpu.mem.get(cpu.pc);
+            self.state = 1;
+            false
+        } else {
+            push!(cpu, cpu.A);
+            true
         }
+    }
+
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        print!("{:04X}  {:02X}        PHA", pc, code);
+        print!("{: >29}{}", "", cpu)
+    }
+}
+
+pub struct Pla {
+    state: usize,
+}
+
+impl OpCode for Pla {
+    fn new() -> Pla {
+        Pla { state: 0 }
+    }
+
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        if self.state == 0 {
+            let _ = cpu.mem.get(cpu.pc);
+            self.state = 1;
+            false
+        } else if self.state == 1 {
+            let (sp, _) = cpu.sp.overflowing_add(1);
+            cpu.sp = sp;
+            self.state = 2;
+            false
+        } else {
+            let sp = mk_addr!(cpu.sp, 0x01 as usize);
+            // see https://wiki.nesdev.com/w/index.php/Status_flags
+            // with PHP, bit 4 and 5 are always set to one
+            cpu.A = cpu.mem.get(sp);
+            cpu.flags.zero = cpu.A == 0;
+            cpu.flags.negative = (cpu.A & 0x80) != 0;
+            true
+        }
+    }
+
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        print!("{:04X}  {:02X}        PLA", pc, code);
+        print!("{: >29}{}", "", cpu)
+    }
+}
+
+pub struct Plp {
+    state: usize,
+}
+
+impl OpCode for Plp {
+    fn new() -> Plp {
+        Plp { state: 0 }
+    }
+
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        if self.state == 0 {
+            let _ = cpu.mem.get(cpu.pc);
+            self.state = 1;
+            false
+        } else if self.state == 1 {
+            let (sp, _) = cpu.sp.overflowing_add(1);
+            cpu.sp = sp;
+            self.state = 2;
+            false
+        } else {
+            let sp = mk_addr!(cpu.sp, 0x01 as usize);
+            // see https://wiki.nesdev.com/w/index.php/Status_flags
+            let imm = cpu.mem.get(sp);
+            cpu.flags.update(imm);
+            true
+        }
+    }
+
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        print!("{:04X}  {:02X}        PLP", pc, code);
+        print!("{: >29}{}", "", cpu)
+    }
+}
+
+pub struct LsrA {}
+
+impl OpCode for LsrA {
+    fn new() -> LsrA {
+        LsrA {}
+    }
+
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        cpu.flags.carry = (cpu.A & 0x01) != 0;
+        let imm = cpu.A >> 1;
+        execute_load!(A, imm, cpu);
+        true
+    }
+
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        print!("{:04X}  {:02X}        LSR A", pc, code);
+        print!("{: <27}{}", "", cpu);
     }
 }
 
@@ -607,32 +567,27 @@ fn lsr_core(cpu: &mut Cpu, data: u8) -> u8 {
     res
 }
 
-declare_addr_zero_page2!(lsr_zp, LsrZp, LSR, super::lsr_core);
+declare_addr_zero_page2!(LsrZp, LSR, lsr_core);
 
-pub mod asl_a {
-    use super::Cpu;
-    use super::OpCode;
+pub struct AslA {}
 
-    pub struct AslA {}
+impl OpCode for AslA {
+    fn new() -> AslA {
+        AslA {}
+    }
 
-    impl OpCode for AslA {
-        fn new() -> AslA {
-            AslA {}
-        }
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        cpu.flags.carry = (cpu.A & 0x80) != 0;
+        let imm = cpu.A << 1;
+        execute_load!(A, imm, cpu);
+        true
+    }
 
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            cpu.flags.carry = (cpu.A & 0x80) != 0;
-            let imm = cpu.A << 1;
-            execute_load!(A, imm, cpu);
-            true
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            print!("{:04X}  {:02X}        ASL A", pc, code,);
-            print!("{: <27}{}", "", cpu);
-        }
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        print!("{:04X}  {:02X}        ASL A", pc, code,);
+        print!("{: <27}{}", "", cpu);
     }
 }
 
@@ -644,32 +599,27 @@ fn asl_core(cpu: &mut Cpu, data: u8) -> u8 {
     res
 }
 
-declare_addr_zero_page2!(asl_zp, AslZp, ASL, super::asl_core);
+declare_addr_zero_page2!(AslZp, ASL, asl_core);
 
-pub mod ror_a {
-    use super::Cpu;
-    use super::OpCode;
+pub struct RorA {}
 
-    pub struct RorA {}
+impl OpCode for RorA {
+    fn new() -> RorA {
+        RorA {}
+    }
 
-    impl OpCode for RorA {
-        fn new() -> RorA {
-            RorA {}
-        }
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        let imm: u8 = (cpu.A >> 1) | (if cpu.flags.carry { 0x80 } else { 0 });
+        cpu.flags.carry = (cpu.A & 0x01) != 0;
+        execute_load!(A, imm, cpu);
+        true
+    }
 
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            let imm: u8 = (cpu.A >> 1) | (if cpu.flags.carry { 0x80 } else { 0 });
-            cpu.flags.carry = (cpu.A & 0x01) != 0;
-            execute_load!(A, imm, cpu);
-            true
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            print!("{:04X}  {:02X}        ROR A", pc, code,);
-            print!("{: <27}{}", "", cpu);
-        }
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        print!("{:04X}  {:02X}        ROR A", pc, code,);
+        print!("{: <27}{}", "", cpu);
     }
 }
 
@@ -681,32 +631,27 @@ fn ror_core(cpu: &mut Cpu, data: u8) -> u8 {
     res
 }
 
-declare_addr_zero_page2!(ror_zp, RorZp, ROR, super::ror_core);
+declare_addr_zero_page2!(RorZp, ROR, ror_core);
 
-pub mod rol_a {
-    use super::Cpu;
-    use super::OpCode;
+pub struct RolA {}
 
-    pub struct RolA {}
+impl OpCode for RolA {
+    fn new() -> RolA {
+        RolA {}
+    }
 
-    impl OpCode for RolA {
-        fn new() -> RolA {
-            RolA {}
-        }
+    fn decode(&mut self, cpu: &mut Cpu) -> bool {
+        let imm = (cpu.A << 1) | (if cpu.flags.carry { 0x01 } else { 0 });
+        cpu.flags.carry = (cpu.A & 0x80) != 0;
+        execute_load!(A, imm, cpu);
+        true
+    }
 
-        fn decode(&mut self, cpu: &mut Cpu) -> bool {
-            let imm = (cpu.A << 1) | (if cpu.flags.carry { 0x01 } else { 0 });
-            cpu.flags.carry = (cpu.A & 0x80) != 0;
-            execute_load!(A, imm, cpu);
-            true
-        }
-
-        fn log(&self, cpu: &Cpu) {
-            let pc = cpu.pc - 1;
-            let code = cpu.mem.get(pc);
-            print!("{:04X}  {:02X}        ROL A", pc, code,);
-            print!("{: <27}{}", "", cpu);
-        }
+    fn log(&self, cpu: &Cpu) {
+        let pc = cpu.pc - 1;
+        let code = cpu.mem.get(pc);
+        print!("{:04X}  {:02X}        ROL A", pc, code,);
+        print!("{: <27}{}", "", cpu);
     }
 }
 
@@ -718,7 +663,7 @@ fn rol_core(cpu: &mut Cpu, data: u8) -> u8 {
     res
 }
 
-declare_addr_zero_page2!(rol_zp, RolZp, ROL, super::rol_core);
+declare_addr_zero_page2!(RolZp, ROL, rol_core);
 
 fn inc_core(cpu: &mut Cpu, data: u8) -> u8 {
     let res: u8 = data.overflowing_add(1).0;
@@ -727,7 +672,7 @@ fn inc_core(cpu: &mut Cpu, data: u8) -> u8 {
     res
 }
 
-declare_addr_zero_page2!(inc_zp, IncZp, INC, super::inc_core);
+declare_addr_zero_page2!(IncZp, INC, inc_core);
 
 fn dec_core(cpu: &mut Cpu, data: u8) -> u8 {
     let res: u8 = data.overflowing_sub(1).0;
@@ -736,4 +681,4 @@ fn dec_core(cpu: &mut Cpu, data: u8) -> u8 {
     res
 }
 
-declare_addr_zero_page2!(dec_zp, DecZp, DEC, super::dec_core);
+declare_addr_zero_page2!(DecZp, DEC, dec_core);

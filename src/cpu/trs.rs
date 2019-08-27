@@ -1,34 +1,29 @@
 macro_rules! declare_transfert {
-    ($mod:ident, $name:ident, $from:ident, $to:ident) => {
-        pub mod $mod {
-            use super::Cpu;
-            use super::OpCode;
+    ($name:ident, $from:ident, $to:ident) => {
+        pub struct $name {}
 
-            pub struct $name {}
+        impl OpCode for $name {
+            fn new() -> $name {
+                $name {}
+            }
 
-            impl OpCode for $name {
-                fn new() -> $name {
-                    $name {}
-                }
+            fn decode(&mut self, cpu: &mut Cpu) -> bool {
+                let imm = cpu.$from;
+                execute_load!($to, imm, cpu);
+                true
+            }
 
-                fn decode(&mut self, cpu: &mut Cpu) -> bool {
-                    let imm = cpu.$from;
-                    execute_load!($to, imm, cpu);
-                    true
-                }
-
-                fn log(&self, cpu: &Cpu) {
-                    let pc = cpu.pc - 1;
-                    let code = cpu.mem.get(pc);
-                    print!(
-                        "{:04X}  {:02X}        T{}{}",
-                        pc,
-                        code,
-                        stringify!($from),
-                        stringify!($to)
-                    );
-                    print!("{: <29}{}", "", cpu)
-                }
+            fn log(&self, cpu: &Cpu) {
+                let pc = cpu.pc - 1;
+                let code = cpu.mem.get(pc);
+                print!(
+                    "{:04X}  {:02X}        T{}{}",
+                    pc,
+                    code,
+                    stringify!($from),
+                    stringify!($to)
+                );
+                print!("{: <29}{}", "", cpu)
             }
         }
     };
