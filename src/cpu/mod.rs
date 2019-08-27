@@ -239,6 +239,10 @@ declare_addr_zero_page!(CmpZp, CMP, cmp_addr_a);
 declare_addr_zero_page!(CpxZp, CPX, cmp_addr_x);
 declare_addr_zero_page!(CpyZp, CPY, cmp_addr_y);
 
+declare_addr_abs!(CmpAbs, CMP, cmp_addr_a);
+declare_addr_abs!(CpxAbs, CPX, cmp_addr_x);
+declare_addr_abs!(CpyAbs, CPY, cmp_addr_y);
+
 // LDA, LDX, LDY
 macro_rules! load_imm_impl {
     ($name:ident, $reg:ident) => {
@@ -278,9 +282,9 @@ declare_load_zero_page_reg!(lda_zero_page_x, LdaZeroPageX, A, X);
 declare_load_zero_page_reg!(ldy_zero_page_x, LdyZeroPageX, Y, X);
 declare_load_zero_page_reg!(ldx_zero_page_y, LdxZeroPageY, X, Y);
 
-declare_load_abs!(lda_abs, LdaAbs, A);
-declare_load_abs!(ldx_abs, LdxAbs, X);
-declare_load_abs!(ldy_abs, LdyAbs, Y);
+declare_addr_abs!(LdaAbs, LDA, load_addr_a);
+declare_addr_abs!(LdxAbs, LDX, load_addr_x);
+declare_addr_abs!(LdyAbs, LDY, load_addr_y);
 
 declare_load_abs_reg!(lda_abs_x, LdaAbsX, A, X);
 declare_load_abs_reg!(lda_abs_y, LdaAbsY, A, Y);
@@ -310,9 +314,9 @@ declare_store_zero_page_reg!(sta_zero_page_x, StaZeroPageX, A, X);
 declare_store_zero_page_reg!(stx_zero_page_y, StxZeroPageY, X, Y);
 declare_store_zero_page_reg!(sty_zero_page_x, StyZeroPageX, Y, X);
 
-declare_store_abs!(sta_abs, StaAbs, A);
-declare_store_abs!(stx_abs, StxAbs, X);
-declare_store_abs!(sty_abs, StyAbs, Y);
+declare_addr_abs!(StaAbs, STA, store_a);
+declare_addr_abs!(StxAbs, STX, store_x);
+declare_addr_abs!(StyAbs, STY, store_y);
 
 declare_store_abs_reg!(sta_abs_x, StaAbsX, A, X);
 declare_store_abs_reg!(sta_abs_y, StaAbsY, A, Y);

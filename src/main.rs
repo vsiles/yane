@@ -28,8 +28,11 @@ use cpu::CmpZp;
 use cpu::CpxZp;
 use cpu::CpyZp;
 use cpu::cmp::CmpNdxInd;
+use cpu::CmpAbs;
+use cpu::CpxAbs;
+use cpu::CpyAbs;
 
-use cpu::lda_abs::LdaAbs;
+use cpu::LdaAbs;
 use cpu::lda_abs_x::LdaAbsX;
 use cpu::lda_abs_y::LdaAbsY;
 use cpu::LdaImm;
@@ -37,29 +40,29 @@ use cpu::lda_ind_ndx::LdaIndNdx;
 use cpu::load::load_ndx_ind::LdaNdxInd;
 use cpu::LdaZeroPage;
 use cpu::lda_zero_page_x::LdaZeroPageX;
-use cpu::ldx_abs::LdxAbs;
+use cpu::LdxAbs;
 use cpu::ldx_abs_y::LdxAbsY;
 use cpu::LdxImm;
 use cpu::LdxZeroPage;
 use cpu::ldx_zero_page_y::LdxZeroPageY;
-use cpu::ldy_abs::LdyAbs;
+use cpu::LdyAbs;
 use cpu::ldy_abs_x::LdyAbsX;
 use cpu::LdyImm;
 use cpu::LdyZeroPage;
 use cpu::ldy_zero_page_x::LdyZeroPageX;
 use cpu::*;
 
-use cpu::sta_abs::StaAbs;
+use cpu::StaAbs;
 use cpu::sta_abs_x::StaAbsX;
 use cpu::sta_abs_y::StaAbsY;
 use cpu::sta_ind_ndx::StaIndNdx;
 use cpu::sta_ndx_ind::StaNdxInd;
 use cpu::StaZeroPage;
 use cpu::sta_zero_page_x::StaZeroPageX;
-use cpu::stx_abs::StxAbs;
+use cpu::StxAbs;
 use cpu::StxZeroPage;
 use cpu::stx_zero_page_y::StxZeroPageY;
-use cpu::sty_abs::StyAbs;
+use cpu::StyAbs;
 use cpu::StyZeroPage;
 use cpu::sty_zero_page_x::StyZeroPageX;
 
@@ -248,6 +251,8 @@ fn cycle(
                 0xC8 => add_opcode!(InY, opcode, cpu),
                 0xC9 => add_opcode!(CmpImm, opcode, cpu),
                 0xCA => add_opcode!(DeX, opcode, cpu),
+                0xCC => add_opcode!(CpyAbs, opcode, cpu),
+                0xCD => add_opcode!(CmpAbs, opcode, cpu),
                 0xD0 => add_opcode!(Bne, opcode, cpu),
                 0xD8 => add_opcode!(Cld, opcode, cpu),
                 0xE0 => add_opcode!(CpxImm, opcode, cpu),
@@ -258,6 +263,7 @@ fn cycle(
                 0xE8 => add_opcode!(InX, opcode, cpu),
                 0xE9 => add_opcode!(SbcImm, opcode, cpu),
                 0xEA => add_opcode!(Nop, opcode, cpu),
+                0xEC => add_opcode!(CpxAbs, opcode, cpu),
                 0xED => add_opcode!(SbcAbs, opcode, cpu),
                 0xF0 => add_opcode!(Beq, opcode, cpu),
                 0xF8 => add_opcode!(Sed, opcode, cpu),
