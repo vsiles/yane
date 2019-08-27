@@ -74,6 +74,7 @@ use cpu::Cld;
 use cpu::Cli;
 use cpu::Clv;
 use cpu::jmp::Jmp;
+use cpu::jmp::JmpInd;
 use cpu::jsr::Jsr;
 use cpu::nop::Nop;
 use cpu::rti::Rti;
@@ -217,6 +218,7 @@ fn cycle(
                 0x68 => add_opcode!(Pla, opcode, cpu),
                 0x69 => add_opcode!(AdcImm, opcode, cpu),
                 0x6A => add_opcode!(RorA, opcode, cpu),
+                0x6C => add_opcode!(JmpInd, opcode, cpu),
                 0x6D => add_opcode!(AdcAbs, opcode, cpu),
                 0x6E => add_opcode!(RorAbs, opcode, cpu),
                 0x70 => add_opcode!(Bvs, opcode, cpu),
@@ -292,6 +294,9 @@ fn cycle(
                 0xF1 => add_opcode!(SbcIndY, opcode, cpu),
                 0xF8 => add_opcode!(Sed, opcode, cpu),
                 _ => {
+                    println!("DEBUG: 02FF={:#X} 0300={:#X}",
+                             cpu.mem.get(0x2FF),
+                             cpu.mem.get(0x300));
                     /*TODO deal with errors */
                     State::Done
                 }

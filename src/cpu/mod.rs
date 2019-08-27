@@ -307,6 +307,8 @@ declare_addr_ind_y!(LdaIndY, LDA, load_addr_a);
 macro_rules! store_impl {
     ($name:ident, $reg:ident) => {
         fn $name(cpu: &mut Cpu, val: usize) { 
+            // println!("Storing register {} = {:#X} at {:#X}",
+            //          stringify!($reg), cpu.$reg, val);
             let addr = (val & 0xFFFF) as u16;
             cpu.mem.set(addr, cpu.$reg)
         }
