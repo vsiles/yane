@@ -19,7 +19,9 @@ use cpu::DeY;
 use cpu::InX;
 use cpu::InY;
 use cpu::IncZp;
+use cpu::IncAbs;
 use cpu::DecZp;
+use cpu::DecAbs;
 
 use cpu::CmpImm;
 use cpu::CpxImm;
@@ -31,12 +33,13 @@ use cpu::cmp::CmpNdxInd;
 use cpu::CmpAbs;
 use cpu::CpxAbs;
 use cpu::CpyAbs;
+use cpu::CmpIndY;
 
 use cpu::LdaAbs;
 use cpu::lda_abs_x::LdaAbsX;
 use cpu::lda_abs_y::LdaAbsY;
 use cpu::LdaImm;
-use cpu::lda_ind_ndx::LdaIndNdx;
+use cpu::LdaIndY;
 use cpu::load::load_ndx_ind::LdaNdxInd;
 use cpu::LdaZeroPage;
 use cpu::lda_zero_page_x::LdaZeroPageX;
@@ -55,7 +58,7 @@ use cpu::*;
 use cpu::StaAbs;
 use cpu::sta_abs_x::StaAbsX;
 use cpu::sta_abs_y::StaAbsY;
-use cpu::sta_ind_ndx::StaIndNdx;
+use cpu::StaIndY;
 use cpu::sta_ndx_ind::StaNdxInd;
 use cpu::StaZeroPage;
 use cpu::sta_zero_page_x::StaZeroPageX;
@@ -95,22 +98,27 @@ use cpu::AdcImm;
 use cpu::AdcZp;
 use cpu::adc::adc_ndx_ind::AdcNdxInd;
 use cpu::AdcAbs;
+use cpu::AdcIndY;
 use cpu::AndImm;
 use cpu::and_ndx_ind::AndNdxInd;
 use cpu::AndZp;
 use cpu::AndAbs;
+use cpu::AndIndY;
 use cpu::EorImm;
 use cpu::eor_ndx_ind::EorNdxInd;
 use cpu::EorZp;
 use cpu::EorAbs;
+use cpu::EorIndY;
 use cpu::OraImm;
 use cpu::ora_ndx_ind::OraNdxInd;
 use cpu::OraZp;
 use cpu::OraAbs;
+use cpu::OraIndY;
 use cpu::SbcImm;
 use cpu::SbcZp;
 use cpu::sbc::SbcNdxInd;
 use cpu::SbcAbs;
+use cpu::SbcIndY;
 
 use cpu::Pha;
 use cpu::Php;
@@ -119,12 +127,16 @@ use cpu::Plp;
 
 use cpu::AslA;
 use cpu::AslZp;
+use cpu::AslAbs;
 use cpu::LsrA;
 use cpu::LsrZp;
+use cpu::LsrAbs;
 use cpu::RolA;
 use cpu::RolZp;
+use cpu::RolAbs;
 use cpu::RorA;
 use cpu::RorZp;
+use cpu::RorAbs;
 
 enum State {
     FetchOpcode,
@@ -165,8 +177,10 @@ fn cycle(
                 0x06 => add_opcode!(AslZp, opcode, cpu),
                 0x08 => add_opcode!(Php, opcode, cpu),
                 0x09 => add_opcode!(OraImm, opcode, cpu),
+                0x11 => add_opcode!(OraIndY, opcode, cpu),
                 0x0A => add_opcode!(AslA, opcode, cpu),
                 0x0D => add_opcode!(OraAbs, opcode, cpu),
+                0x0E => add_opcode!(AslAbs, opcode, cpu),
                 0x10 => add_opcode!(Bpl, opcode, cpu),
                 0x18 => add_opcode!(Clc, opcode, cpu),
                 0x20 => add_opcode!(Jsr, opcode, cpu),
@@ -177,9 +191,11 @@ fn cycle(
                 0x28 => add_opcode!(Plp, opcode, cpu),
                 0x29 => add_opcode!(AndImm, opcode, cpu),
                 0x2A => add_opcode!(RolA, opcode, cpu),
-                0x2c => add_opcode!(BitAbs, opcode, cpu),
+                0x2C => add_opcode!(BitAbs, opcode, cpu),
                 0x2D => add_opcode!(AndAbs, opcode, cpu),
+                0x2E => add_opcode!(RolAbs, opcode, cpu),
                 0x30 => add_opcode!(Bmi, opcode, cpu),
+                0x31 => add_opcode!(AndIndY, opcode, cpu),
                 0x38 => add_opcode!(Sec, opcode, cpu),
                 0x40 => add_opcode!(Rti, opcode, cpu),
                 0x41 => add_opcode!(EorNdxInd, opcode, cpu),
@@ -190,7 +206,9 @@ fn cycle(
                 0x4A => add_opcode!(LsrA, opcode, cpu),
                 0x4C => add_opcode!(Jmp, opcode, cpu),
                 0x4D => add_opcode!(EorAbs, opcode, cpu),
+                0x4E => add_opcode!(LsrAbs, opcode, cpu),
                 0x50 => add_opcode!(Bvc, opcode, cpu),
+                0x51 => add_opcode!(EorIndY, opcode, cpu),
                 0x58 => add_opcode!(Cli, opcode, cpu),
                 0x60 => add_opcode!(Rts, opcode, cpu),
                 0x61 => add_opcode!(AdcNdxInd, opcode, cpu),
@@ -200,7 +218,9 @@ fn cycle(
                 0x69 => add_opcode!(AdcImm, opcode, cpu),
                 0x6A => add_opcode!(RorA, opcode, cpu),
                 0x6D => add_opcode!(AdcAbs, opcode, cpu),
+                0x6E => add_opcode!(RorAbs, opcode, cpu),
                 0x70 => add_opcode!(Bvs, opcode, cpu),
+                0x71 => add_opcode!(AdcIndY, opcode, cpu),
                 0x78 => add_opcode!(Sei, opcode, cpu),
                 0x81 => add_opcode!(StaNdxInd, opcode, cpu),
                 0x84 => add_opcode!(StyZeroPage, opcode, cpu),
@@ -212,7 +232,7 @@ fn cycle(
                 0x8D => add_opcode!(StaAbs, opcode, cpu),
                 0x8E => add_opcode!(StxAbs, opcode, cpu),
                 0x90 => add_opcode!(Bcc, opcode, cpu),
-                0x91 => add_opcode!(StaIndNdx, opcode, cpu),
+                0x91 => add_opcode!(StaIndY, opcode, cpu),
                 0x94 => add_opcode!(StyZeroPageX, opcode, cpu),
                 0x95 => add_opcode!(StaZeroPageX, opcode, cpu),
                 0x96 => add_opcode!(StxZeroPageY, opcode, cpu),
@@ -233,7 +253,7 @@ fn cycle(
                 0xAD => add_opcode!(LdaAbs, opcode, cpu),
                 0xAE => add_opcode!(LdxAbs, opcode, cpu),
                 0xB0 => add_opcode!(Bcs, opcode, cpu),
-                0xB1 => add_opcode!(LdaIndNdx, opcode, cpu),
+                0xB1 => add_opcode!(LdaIndY, opcode, cpu),
                 0xB4 => add_opcode!(LdyZeroPageX, opcode, cpu),
                 0xB5 => add_opcode!(LdaZeroPageX, opcode, cpu),
                 0xB6 => add_opcode!(LdxZeroPageY, opcode, cpu),
@@ -253,7 +273,9 @@ fn cycle(
                 0xCA => add_opcode!(DeX, opcode, cpu),
                 0xCC => add_opcode!(CpyAbs, opcode, cpu),
                 0xCD => add_opcode!(CmpAbs, opcode, cpu),
+                0xCE => add_opcode!(DecAbs, opcode, cpu),
                 0xD0 => add_opcode!(Bne, opcode, cpu),
+                0xD1 => add_opcode!(CmpIndY, opcode, cpu),
                 0xD8 => add_opcode!(Cld, opcode, cpu),
                 0xE0 => add_opcode!(CpxImm, opcode, cpu),
                 0xE1 => add_opcode!(SbcNdxInd, opcode, cpu),
@@ -265,7 +287,9 @@ fn cycle(
                 0xEA => add_opcode!(Nop, opcode, cpu),
                 0xEC => add_opcode!(CpxAbs, opcode, cpu),
                 0xED => add_opcode!(SbcAbs, opcode, cpu),
+                0xEE => add_opcode!(IncAbs, opcode, cpu),
                 0xF0 => add_opcode!(Beq, opcode, cpu),
+                0xF1 => add_opcode!(SbcIndY, opcode, cpu),
                 0xF8 => add_opcode!(Sed, opcode, cpu),
                 _ => {
                     /*TODO deal with errors */

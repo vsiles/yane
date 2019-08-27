@@ -33,6 +33,8 @@ pub mod addr_mod_imm;
 pub mod addr_mod_zp;
 #[macro_use]
 pub mod addr_mod_abs;
+#[macro_use]
+pub mod addr_mod_indirect_y;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -62,6 +64,7 @@ fn adc_addr(cpu: &mut Cpu, val: usize) {
 declare_addr_imm!(AdcImm, ADC, adc_imm);
 declare_addr_zero_page!(AdcZp, ADC, adc_addr);
 declare_addr_abs!(AdcAbs, ADC, adc_addr);
+declare_addr_ind_y!(AdcIndY, ADC, adc_addr);
 
 // SBC
 // https://stackoverflow.com/questions/29193303/6502-emulation-proper-way-to-implement-adc-and-sbc
@@ -92,6 +95,7 @@ fn sbc_addr(cpu: &mut Cpu, val: usize) {
 declare_addr_imm!(SbcImm, SBC, sbc_imm);
 declare_addr_zero_page!(SbcZp, SBC, sbc_addr);
 declare_addr_abs!(SbcAbs, SBC, sbc_addr);
+declare_addr_ind_y!(SbcIndY, SBC, sbc_addr);
 
 // ORA, AND, EOR
 macro_rules! bool_imm_impl {
@@ -135,6 +139,10 @@ declare_addr_zero_page!(EorZp, EOR, eor_addr);
 declare_addr_abs!(OraAbs, ORA, ora_addr);
 declare_addr_abs!(AndAbs, AND, and_addr);
 declare_addr_abs!(EorAbs, EOR, eor_addr);
+
+declare_addr_ind_y!(OraIndY, ORA, ora_addr);
+declare_addr_ind_y!(AndIndY, AND, and_addr);
+declare_addr_ind_y!(EorIndY, EOR, eor_addr);
 
 // TAX, TAY, TSX, TXA, TXS, TYA
 declare_transfert!(TAX, A, X);
@@ -243,6 +251,8 @@ declare_addr_abs!(CmpAbs, CMP, cmp_addr_a);
 declare_addr_abs!(CpxAbs, CPX, cmp_addr_x);
 declare_addr_abs!(CpyAbs, CPY, cmp_addr_y);
 
+declare_addr_ind_y!(CmpIndY, CMP, cmp_addr_a);
+
 // LDA, LDX, LDY
 macro_rules! load_imm_impl {
     ($name:ident, $reg:ident) => {
@@ -291,7 +301,7 @@ declare_load_abs_reg!(lda_abs_y, LdaAbsY, A, Y);
 declare_load_abs_reg!(ldx_abs_y, LdxAbsY, X, Y);
 declare_load_abs_reg!(ldy_abs_x, LdyAbsX, Y, X);
 
-declare_load_ind_ndx!(lda_ind_ndx, LdaIndNdx, A);
+declare_addr_ind_y!(LdaIndY, LDA, load_addr_a);
 
 // STA, STX, STY
 macro_rules! store_impl {
@@ -323,7 +333,7 @@ declare_store_abs_reg!(sta_abs_y, StaAbsY, A, Y);
 
 declare_store_ndx_ind!(sta_ndx_ind, StaNdxInd, A);
 
-declare_store_ind_ndx!(sta_ind_ndx, StaIndNdx, A);
+declare_addr_ind_y!(StaIndY, STA, store_a);
 
 // SEC, SED, SEI, CLC, CLD, CLI
 declare_flags_opcode!(Sec, SEC, carry, true);
@@ -572,6 +582,7 @@ fn lsr_core(cpu: &mut Cpu, data: u8) -> u8 {
 }
 
 declare_addr_zero_page2!(LsrZp, LSR, lsr_core);
+declare_addr_abs2!(LsrAbs, LSR, lsr_core);
 
 pub struct AslA {}
 
@@ -604,6 +615,7 @@ fn asl_core(cpu: &mut Cpu, data: u8) -> u8 {
 }
 
 declare_addr_zero_page2!(AslZp, ASL, asl_core);
+declare_addr_abs2!(AslAbs, ASL, asl_core);
 
 pub struct RorA {}
 
@@ -636,6 +648,7 @@ fn ror_core(cpu: &mut Cpu, data: u8) -> u8 {
 }
 
 declare_addr_zero_page2!(RorZp, ROR, ror_core);
+declare_addr_abs2!(RorAbs, ROR, ror_core);
 
 pub struct RolA {}
 
@@ -668,6 +681,7 @@ fn rol_core(cpu: &mut Cpu, data: u8) -> u8 {
 }
 
 declare_addr_zero_page2!(RolZp, ROL, rol_core);
+declare_addr_abs2!(RolAbs, ROL, rol_core);
 
 fn inc_core(cpu: &mut Cpu, data: u8) -> u8 {
     let res: u8 = data.overflowing_add(1).0;
@@ -677,6 +691,7 @@ fn inc_core(cpu: &mut Cpu, data: u8) -> u8 {
 }
 
 declare_addr_zero_page2!(IncZp, INC, inc_core);
+declare_addr_abs2!(IncAbs, INC, inc_core);
 
 fn dec_core(cpu: &mut Cpu, data: u8) -> u8 {
     let res: u8 = data.overflowing_sub(1).0;
@@ -686,3 +701,4 @@ fn dec_core(cpu: &mut Cpu, data: u8) -> u8 {
 }
 
 declare_addr_zero_page2!(DecZp, DEC, dec_core);
+declare_addr_abs2!(DecAbs, DEC, dec_core);
