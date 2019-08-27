@@ -34,6 +34,8 @@ pub mod addr_mod_zp;
 #[macro_use]
 pub mod addr_mod_abs;
 #[macro_use]
+pub mod addr_mod_abs_reg;
+#[macro_use]
 pub mod addr_mod_indirect_y;
 
 pub use cpu::*;
@@ -65,6 +67,8 @@ declare_addr_imm!(AdcImm, ADC, adc_imm);
 declare_addr_zero_page!(AdcZp, ADC, adc_addr);
 declare_addr_abs!(AdcAbs, ADC, adc_addr);
 declare_addr_ind_y!(AdcIndY, ADC, adc_addr);
+declare_addr_abs_reg!(AdcAbsX, ADC, X, adc_addr);
+declare_addr_abs_reg!(AdcAbsY, ADC, Y, adc_addr);
 
 // SBC
 // https://stackoverflow.com/questions/29193303/6502-emulation-proper-way-to-implement-adc-and-sbc
@@ -96,6 +100,8 @@ declare_addr_imm!(SbcImm, SBC, sbc_imm);
 declare_addr_zero_page!(SbcZp, SBC, sbc_addr);
 declare_addr_abs!(SbcAbs, SBC, sbc_addr);
 declare_addr_ind_y!(SbcIndY, SBC, sbc_addr);
+declare_addr_abs_reg!(SbcAbsX, SBC, X, sbc_addr);
+declare_addr_abs_reg!(SbcAbsY, SBC, Y, sbc_addr);
 
 // ORA, AND, EOR
 macro_rules! bool_imm_impl {
@@ -143,6 +149,13 @@ declare_addr_abs!(EorAbs, EOR, eor_addr);
 declare_addr_ind_y!(OraIndY, ORA, ora_addr);
 declare_addr_ind_y!(AndIndY, AND, and_addr);
 declare_addr_ind_y!(EorIndY, EOR, eor_addr);
+
+declare_addr_abs_reg!(OraAbsX, ORA, X, ora_addr);
+declare_addr_abs_reg!(OraAbsY, ORA, Y, ora_addr);
+declare_addr_abs_reg!(AndAbsX, AND, X, and_addr);
+declare_addr_abs_reg!(AndAbsY, AND, Y, and_addr);
+declare_addr_abs_reg!(EorAbsX, EOR, X, eor_addr);
+declare_addr_abs_reg!(EorAbsY, EOR, Y, eor_addr);
 
 // TAX, TAY, TSX, TXA, TXS, TYA
 declare_transfert!(TAX, A, X);
@@ -253,6 +266,9 @@ declare_addr_abs!(CpyAbs, CPY, cmp_addr_y);
 
 declare_addr_ind_y!(CmpIndY, CMP, cmp_addr_a);
 
+declare_addr_abs_reg!(CmpAbsX, CMP, X, cmp_addr_a);
+declare_addr_abs_reg!(CmpAbsY, CMP, Y, cmp_addr_a);
+
 // LDA, LDX, LDY
 macro_rules! load_imm_impl {
     ($name:ident, $reg:ident) => {
@@ -296,10 +312,10 @@ declare_addr_abs!(LdaAbs, LDA, load_addr_a);
 declare_addr_abs!(LdxAbs, LDX, load_addr_x);
 declare_addr_abs!(LdyAbs, LDY, load_addr_y);
 
-declare_load_abs_reg!(lda_abs_x, LdaAbsX, A, X);
-declare_load_abs_reg!(lda_abs_y, LdaAbsY, A, Y);
-declare_load_abs_reg!(ldx_abs_y, LdxAbsY, X, Y);
-declare_load_abs_reg!(ldy_abs_x, LdyAbsX, Y, X);
+declare_addr_abs_reg!(LdaAbsX, LDA, X, load_addr_a);
+declare_addr_abs_reg!(LdaAbsY, LDA, Y, load_addr_a);
+declare_addr_abs_reg!(LdxAbsY, LDX, Y, load_addr_x);
+declare_addr_abs_reg!(LdyAbsX, LDY, X, load_addr_y);
 
 declare_addr_ind_y!(LdaIndY, LDA, load_addr_a);
 
@@ -330,8 +346,8 @@ declare_addr_abs!(StaAbs, STA, store_a);
 declare_addr_abs!(StxAbs, STX, store_x);
 declare_addr_abs!(StyAbs, STY, store_y);
 
-declare_store_abs_reg!(sta_abs_x, StaAbsX, A, X);
-declare_store_abs_reg!(sta_abs_y, StaAbsY, A, Y);
+declare_addr_abs_reg!(StaAbsX, STA, X, store_a);
+declare_addr_abs_reg!(StaAbsY, STA, Y, store_a);
 
 declare_store_ndx_ind!(sta_ndx_ind, StaNdxInd, A);
 

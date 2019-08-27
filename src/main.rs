@@ -34,30 +34,32 @@ use cpu::CmpAbs;
 use cpu::CpxAbs;
 use cpu::CpyAbs;
 use cpu::CmpIndY;
+use cpu::CmpAbsX;
+use cpu::CmpAbsY;
 
 use cpu::LdaAbs;
-use cpu::lda_abs_x::LdaAbsX;
-use cpu::lda_abs_y::LdaAbsY;
+use cpu::LdaAbsX;
+use cpu::LdaAbsY;
 use cpu::LdaImm;
 use cpu::LdaIndY;
 use cpu::load::load_ndx_ind::LdaNdxInd;
 use cpu::LdaZeroPage;
 use cpu::lda_zero_page_x::LdaZeroPageX;
 use cpu::LdxAbs;
-use cpu::ldx_abs_y::LdxAbsY;
+use cpu::LdxAbsY;
 use cpu::LdxImm;
 use cpu::LdxZeroPage;
 use cpu::ldx_zero_page_y::LdxZeroPageY;
 use cpu::LdyAbs;
-use cpu::ldy_abs_x::LdyAbsX;
+use cpu::LdyAbsX;
 use cpu::LdyImm;
 use cpu::LdyZeroPage;
 use cpu::ldy_zero_page_x::LdyZeroPageX;
 use cpu::*;
 
 use cpu::StaAbs;
-use cpu::sta_abs_x::StaAbsX;
-use cpu::sta_abs_y::StaAbsY;
+use cpu::StaAbsX;
+use cpu::StaAbsY;
 use cpu::StaIndY;
 use cpu::sta_ndx_ind::StaNdxInd;
 use cpu::StaZeroPage;
@@ -100,26 +102,36 @@ use cpu::AdcZp;
 use cpu::adc::adc_ndx_ind::AdcNdxInd;
 use cpu::AdcAbs;
 use cpu::AdcIndY;
+use cpu::AdcAbsX;
+use cpu::AdcAbsY;
 use cpu::AndImm;
 use cpu::and_ndx_ind::AndNdxInd;
 use cpu::AndZp;
 use cpu::AndAbs;
 use cpu::AndIndY;
+use cpu::AndAbsX;
+use cpu::AndAbsY;
 use cpu::EorImm;
 use cpu::eor_ndx_ind::EorNdxInd;
 use cpu::EorZp;
 use cpu::EorAbs;
 use cpu::EorIndY;
+use cpu::EorAbsX;
+use cpu::EorAbsY;
 use cpu::OraImm;
 use cpu::ora_ndx_ind::OraNdxInd;
 use cpu::OraZp;
 use cpu::OraAbs;
 use cpu::OraIndY;
+use cpu::OraAbsX;
+use cpu::OraAbsY;
 use cpu::SbcImm;
 use cpu::SbcZp;
 use cpu::sbc::SbcNdxInd;
 use cpu::SbcAbs;
 use cpu::SbcIndY;
+use cpu::SbcAbsX;
+use cpu::SbcAbsY;
 
 use cpu::Pha;
 use cpu::Php;
@@ -184,6 +196,8 @@ fn cycle(
                 0x0E => add_opcode!(AslAbs, opcode, cpu),
                 0x10 => add_opcode!(Bpl, opcode, cpu),
                 0x18 => add_opcode!(Clc, opcode, cpu),
+                0x1D => add_opcode!(OraAbsX, opcode, cpu),
+                0x19 => add_opcode!(OraAbsY, opcode, cpu),
                 0x20 => add_opcode!(Jsr, opcode, cpu),
                 0x21 => add_opcode!(AndNdxInd, opcode, cpu),
                 0x24 => add_opcode!(BitZp, opcode, cpu),
@@ -198,6 +212,8 @@ fn cycle(
                 0x30 => add_opcode!(Bmi, opcode, cpu),
                 0x31 => add_opcode!(AndIndY, opcode, cpu),
                 0x38 => add_opcode!(Sec, opcode, cpu),
+                0x39 => add_opcode!(AndAbsY, opcode, cpu),
+                0x3D => add_opcode!(AndAbsX, opcode, cpu),
                 0x40 => add_opcode!(Rti, opcode, cpu),
                 0x41 => add_opcode!(EorNdxInd, opcode, cpu),
                 0x45 => add_opcode!(EorZp, opcode, cpu),
@@ -211,6 +227,8 @@ fn cycle(
                 0x50 => add_opcode!(Bvc, opcode, cpu),
                 0x51 => add_opcode!(EorIndY, opcode, cpu),
                 0x58 => add_opcode!(Cli, opcode, cpu),
+                0x59 => add_opcode!(EorAbsY, opcode, cpu),
+                0x5D => add_opcode!(EorAbsX, opcode, cpu),
                 0x60 => add_opcode!(Rts, opcode, cpu),
                 0x61 => add_opcode!(AdcNdxInd, opcode, cpu),
                 0x65 => add_opcode!(AdcZp, opcode, cpu),
@@ -224,6 +242,8 @@ fn cycle(
                 0x70 => add_opcode!(Bvs, opcode, cpu),
                 0x71 => add_opcode!(AdcIndY, opcode, cpu),
                 0x78 => add_opcode!(Sei, opcode, cpu),
+                0x79 => add_opcode!(AdcAbsY, opcode, cpu),
+                0x7D => add_opcode!(AdcAbsX, opcode, cpu),
                 0x81 => add_opcode!(StaNdxInd, opcode, cpu),
                 0x84 => add_opcode!(StyZeroPage, opcode, cpu),
                 0x85 => add_opcode!(StaZeroPage, opcode, cpu),
@@ -279,6 +299,8 @@ fn cycle(
                 0xD0 => add_opcode!(Bne, opcode, cpu),
                 0xD1 => add_opcode!(CmpIndY, opcode, cpu),
                 0xD8 => add_opcode!(Cld, opcode, cpu),
+                0xD9 => add_opcode!(CmpAbsY, opcode,  cpu),
+                0xDD => add_opcode!(CmpAbsX, opcode,  cpu),
                 0xE0 => add_opcode!(CpxImm, opcode, cpu),
                 0xE1 => add_opcode!(SbcNdxInd, opcode, cpu),
                 0xE4 => add_opcode!(CpxZp, opcode, cpu),
@@ -293,10 +315,9 @@ fn cycle(
                 0xF0 => add_opcode!(Beq, opcode, cpu),
                 0xF1 => add_opcode!(SbcIndY, opcode, cpu),
                 0xF8 => add_opcode!(Sed, opcode, cpu),
+                0xF9 => add_opcode!(SbcAbsY, opcode, cpu),
+                0xFD => add_opcode!(SbcAbsX, opcode, cpu),
                 _ => {
-                    println!("DEBUG: 02FF={:#X} 0300={:#X}",
-                             cpu.mem.get(0x2FF),
-                             cpu.mem.get(0x300));
                     /*TODO deal with errors */
                     State::Done
                 }
