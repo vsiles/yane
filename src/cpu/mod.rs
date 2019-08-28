@@ -5,19 +5,11 @@ pub mod nop;
 pub mod opcode;
 #[macro_use]
 mod macros;
-#[macro_use]
-pub mod load;
-#[macro_use]
-pub mod store;
 pub mod jmp;
 pub mod jsr;
 pub mod rts;
 #[macro_use]
 pub mod branch;
-#[macro_use]
-pub mod cmp;
-pub mod adc;
-pub mod sbc;
 #[macro_use]
 pub mod incr;
 #[macro_use]
@@ -25,8 +17,6 @@ pub mod decr;
 #[macro_use]
 pub mod trs;
 pub mod rti;
-#[macro_use]
-pub mod bin_ndx_ind;
 #[macro_use]
 pub mod addr_mod_imm;
 #[macro_use]
@@ -39,6 +29,8 @@ pub mod addr_mod_abs;
 pub mod addr_mod_abs_reg;
 #[macro_use]
 pub mod addr_mod_indirect_y;
+#[macro_use]
+pub mod addr_mod_indirect_x;
 
 pub use cpu::*;
 pub use opcode::OpCode;
@@ -68,6 +60,7 @@ fn adc_addr(cpu: &mut Cpu, val: usize) {
 declare_addr_imm!(AdcImm, ADC, adc_imm);
 declare_addr_zero_page!(AdcZp, ADC, adc_addr);
 declare_addr_abs!(AdcAbs, ADC, adc_addr);
+declare_addr_ind_x!(AdcIndX, ADC, adc_addr);
 declare_addr_ind_y!(AdcIndY, ADC, adc_addr);
 declare_addr_abs_reg!(AdcAbsX, ADC, X, adc_addr);
 declare_addr_abs_reg!(AdcAbsY, ADC, Y, adc_addr);
@@ -102,6 +95,7 @@ fn sbc_addr(cpu: &mut Cpu, val: usize) {
 declare_addr_imm!(SbcImm, SBC, sbc_imm);
 declare_addr_zero_page!(SbcZp, SBC, sbc_addr);
 declare_addr_abs!(SbcAbs, SBC, sbc_addr);
+declare_addr_ind_x!(SbcIndX, SBC, sbc_addr);
 declare_addr_ind_y!(SbcIndY, SBC, sbc_addr);
 declare_addr_abs_reg!(SbcAbsX, SBC, X, sbc_addr);
 declare_addr_abs_reg!(SbcAbsY, SBC, Y, sbc_addr);
@@ -138,10 +132,6 @@ declare_addr_imm!(OraImm, ORA, ora_imm);
 declare_addr_imm!(AndImm, AND, and_imm);
 declare_addr_imm!(EorImm, EOR, eor_imm);
 
-declare_bin_ndx_ind!(ora_ndx_ind, OraNdxInd, A, ORA, |x, y| { x | y });
-declare_bin_ndx_ind!(and_ndx_ind, AndNdxInd, A, AND, |x, y| { x & y });
-declare_bin_ndx_ind!(eor_ndx_ind, EorNdxInd, A, EOR, |x, y| { x ^ y });
-
 declare_addr_zero_page!(OraZp, ORA, ora_addr);
 declare_addr_zero_page!(AndZp, AND, and_addr);
 declare_addr_zero_page!(EorZp, EOR, eor_addr);
@@ -149,6 +139,10 @@ declare_addr_zero_page!(EorZp, EOR, eor_addr);
 declare_addr_abs!(OraAbs, ORA, ora_addr);
 declare_addr_abs!(AndAbs, AND, and_addr);
 declare_addr_abs!(EorAbs, EOR, eor_addr);
+
+declare_addr_ind_x!(OraIndX, ORA, ora_addr);
+declare_addr_ind_x!(AndIndX, AND, and_addr);
+declare_addr_ind_x!(EorIndX, EOR, eor_addr);
 
 declare_addr_ind_y!(OraIndY, ORA, ora_addr);
 declare_addr_ind_y!(AndIndY, AND, and_addr);
@@ -272,6 +266,7 @@ declare_addr_abs!(CmpAbs, CMP, cmp_addr_a);
 declare_addr_abs!(CpxAbs, CPX, cmp_addr_x);
 declare_addr_abs!(CpyAbs, CPY, cmp_addr_y);
 
+declare_addr_ind_x!(CmpIndX, CMP, cmp_addr_a);
 declare_addr_ind_y!(CmpIndY, CMP, cmp_addr_a);
 
 declare_addr_abs_reg!(CmpAbsX, CMP, X, cmp_addr_a);
@@ -327,6 +322,7 @@ declare_addr_abs_reg!(LdaAbsY, LDA, Y, load_addr_a);
 declare_addr_abs_reg!(LdxAbsY, LDX, Y, load_addr_x);
 declare_addr_abs_reg!(LdyAbsX, LDY, X, load_addr_y);
 
+declare_addr_ind_x!(LdaIndX, LDA, load_addr_a);
 declare_addr_ind_y!(LdaIndY, LDA, load_addr_a);
 
 // STA, STX, STY
@@ -359,8 +355,7 @@ declare_addr_abs!(StyAbs, STY, store_y);
 declare_addr_abs_reg!(StaAbsX, STA, X, store_a);
 declare_addr_abs_reg!(StaAbsY, STA, Y, store_a);
 
-declare_store_ndx_ind!(sta_ndx_ind, StaNdxInd, A);
-
+declare_addr_ind_x!(StaIndX, STA, store_a);
 declare_addr_ind_y!(StaIndY, STA, store_a);
 
 // SEC, SED, SEI, CLC, CLD, CLI

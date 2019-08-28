@@ -15,22 +15,6 @@ use cpu::rts::*;
 use cpu::rti::*;
 use cpu::opcode::OpCode;
 
-use cpu::cmp::CmpNdxInd;
-
-use cpu::load::load_ndx_ind::LdaNdxInd;
-
-use cpu::sta_ndx_ind::StaNdxInd;
-
-use cpu::adc::adc_ndx_ind::AdcNdxInd;
-
-use cpu::and_ndx_ind::AndNdxInd;
-
-use cpu::eor_ndx_ind::EorNdxInd;
-
-use cpu::ora_ndx_ind::OraNdxInd;
-
-use cpu::sbc::SbcNdxInd;
-
 enum State {
     FetchOpcode,
     Processing,
@@ -65,7 +49,7 @@ fn cycle(
             let op = cpu.read_from_pc();
             // println!("Fetching Opcode {:02x}", op);
             match op {
-                0x01 => add_opcode!(OraNdxInd, opcode, cpu),
+                0x01 => add_opcode!(OraIndX, opcode, cpu),
                 0x04 => add_opcode!(NopZp, opcode, cpu),
                 0x05 => add_opcode!(OraZp, opcode, cpu),
                 0x06 => add_opcode!(AslZp, opcode, cpu),
@@ -83,7 +67,7 @@ fn cycle(
                 0x1D => add_opcode!(OraAbsX, opcode, cpu),
                 0x1E => add_opcode!(AslAbsX, opcode, cpu),
                 0x20 => add_opcode!(Jsr, opcode, cpu),
-                0x21 => add_opcode!(AndNdxInd, opcode, cpu),
+                0x21 => add_opcode!(AndIndX, opcode, cpu),
                 0x24 => add_opcode!(BitZp, opcode, cpu),
                 0x25 => add_opcode!(AndZp, opcode, cpu),
                 0x26 => add_opcode!(RolZp, opcode, cpu),
@@ -102,7 +86,7 @@ fn cycle(
                 0x3D => add_opcode!(AndAbsX, opcode, cpu),
                 0x3E => add_opcode!(RolAbsX, opcode, cpu),
                 0x40 => add_opcode!(Rti, opcode, cpu),
-                0x41 => add_opcode!(EorNdxInd, opcode, cpu),
+                0x41 => add_opcode!(EorIndX, opcode, cpu),
                 0x44 => add_opcode!(NopZp, opcode, cpu),
                 0x45 => add_opcode!(EorZp, opcode, cpu),
                 0x46 => add_opcode!(LsrZp, opcode, cpu),
@@ -121,7 +105,7 @@ fn cycle(
                 0x5D => add_opcode!(EorAbsX, opcode, cpu),
                 0x5E => add_opcode!(LsrAbsX, opcode, cpu),
                 0x60 => add_opcode!(Rts, opcode, cpu),
-                0x61 => add_opcode!(AdcNdxInd, opcode, cpu),
+                0x61 => add_opcode!(AdcIndX, opcode, cpu),
                 0x64 => add_opcode!(NopZp, opcode, cpu),
                 0x65 => add_opcode!(AdcZp, opcode, cpu),
                 0x66 => add_opcode!(RorZp, opcode, cpu),
@@ -139,7 +123,7 @@ fn cycle(
                 0x79 => add_opcode!(AdcAbsY, opcode, cpu),
                 0x7D => add_opcode!(AdcAbsX, opcode, cpu),
                 0x7E => add_opcode!(RorAbsX, opcode, cpu),
-                0x81 => add_opcode!(StaNdxInd, opcode, cpu),
+                0x81 => add_opcode!(StaIndX, opcode, cpu),
                 0x84 => add_opcode!(StyZeroPage, opcode, cpu),
                 0x85 => add_opcode!(StaZeroPage, opcode, cpu),
                 0x86 => add_opcode!(StxZeroPage, opcode, cpu),
@@ -158,7 +142,7 @@ fn cycle(
                 0x9A => add_opcode!(TXS, opcode, cpu),
                 0x9D => add_opcode!(StaAbsX, opcode, cpu),
                 0xA0 => add_opcode!(LdyImm, opcode, cpu),
-                0xA1 => add_opcode!(LdaNdxInd, opcode, cpu),
+                0xA1 => add_opcode!(LdaIndX, opcode, cpu),
                 0xA2 => add_opcode!(LdxImm, opcode, cpu),
                 0xA4 => add_opcode!(LdyZeroPage, opcode, cpu),
                 0xA5 => add_opcode!(LdaZeroPage, opcode, cpu),
@@ -181,7 +165,7 @@ fn cycle(
                 0xBD => add_opcode!(LdaAbsX, opcode, cpu),
                 0xBE => add_opcode!(LdxAbsY, opcode, cpu),
                 0xC0 => add_opcode!(CpyImm, opcode, cpu),
-                0xC1 => add_opcode!(CmpNdxInd, opcode, cpu),
+                0xC1 => add_opcode!(CmpIndX, opcode, cpu),
                 0xC4 => add_opcode!(CpyZp, opcode, cpu),
                 0xC5 => add_opcode!(CmpZp, opcode, cpu),
                 0xC6 => add_opcode!(DecZp, opcode, cpu),
@@ -200,7 +184,7 @@ fn cycle(
                 0xDD => add_opcode!(CmpAbsX, opcode,  cpu),
                 0xDE => add_opcode!(DecAbsX, opcode, cpu),
                 0xE0 => add_opcode!(CpxImm, opcode, cpu),
-                0xE1 => add_opcode!(SbcNdxInd, opcode, cpu),
+                0xE1 => add_opcode!(SbcIndX, opcode, cpu),
                 0xE4 => add_opcode!(CpxZp, opcode, cpu),
                 0xE5 => add_opcode!(SbcZp, opcode, cpu),
                 0xE6 => add_opcode!(IncZp, opcode, cpu),
