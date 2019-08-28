@@ -742,3 +742,9 @@ declare_addr_zero_page2!(DecZp, DEC, dec_core);
 declare_addr_abs2!(DecAbs, DEC, dec_core);
 declare_addr_zero_page_reg2!(DecZpX, DEC, dec_core);
 declare_addr_abs_reg2!(DecAbsX, DEC, dec_core);
+
+
+/* unofficial opcodes */
+
+fn nop_addr(_cpu: &mut Cpu, _val: usize) { }
+declare_addr_zero_page!(NopZp, NOP, nop_addr, true);

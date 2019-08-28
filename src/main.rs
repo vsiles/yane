@@ -66,6 +66,7 @@ fn cycle(
             // println!("Fetching Opcode {:02x}", op);
             match op {
                 0x01 => add_opcode!(OraNdxInd, opcode, cpu),
+                0x04 => add_opcode!(NopZp, opcode, cpu),
                 0x05 => add_opcode!(OraZp, opcode, cpu),
                 0x06 => add_opcode!(AslZp, opcode, cpu),
                 0x08 => add_opcode!(Php, opcode, cpu),
@@ -102,6 +103,7 @@ fn cycle(
                 0x3E => add_opcode!(RolAbsX, opcode, cpu),
                 0x40 => add_opcode!(Rti, opcode, cpu),
                 0x41 => add_opcode!(EorNdxInd, opcode, cpu),
+                0x44 => add_opcode!(NopZp, opcode, cpu),
                 0x45 => add_opcode!(EorZp, opcode, cpu),
                 0x46 => add_opcode!(LsrZp, opcode, cpu),
                 0x48 => add_opcode!(Pha, opcode, cpu),
@@ -120,6 +122,7 @@ fn cycle(
                 0x5E => add_opcode!(LsrAbsX, opcode, cpu),
                 0x60 => add_opcode!(Rts, opcode, cpu),
                 0x61 => add_opcode!(AdcNdxInd, opcode, cpu),
+                0x64 => add_opcode!(NopZp, opcode, cpu),
                 0x65 => add_opcode!(AdcZp, opcode, cpu),
                 0x66 => add_opcode!(RorZp, opcode, cpu),
                 0x68 => add_opcode!(Pla, opcode, cpu),
