@@ -21,16 +21,19 @@ macro_rules! declare_addr_ind_y {
 
             fn decode(&mut self, cpu: &mut Cpu) -> bool {
                 if self.state == 0 {
-                    // read offset from memory
+                    // 2      PC       R  fetch pointer address, increment PC
                     self.addr = cpu.read_from_pc();
                     self.state = 1;
                     false
                 } else if self.state == 1 {
+                    // 3    pointer    R  fetch effective address low
                     self.low = cpu.mem.get(self.addr as u16);
                     self.addr = self.addr.overflowing_add(1).0;
                     self.state = 2;
                     false
                 } else if self.state == 2 {
+                    // 4   pointer+1   R  fetch effective address high,
+                    //                    add Y to low byte of effective address
                     self.high = cpu.mem.get(self.addr as u16);
                     let (low, carry) = self.low.overflowing_add(cpu.Y);
                     self.low = low;
@@ -38,6 +41,8 @@ macro_rules! declare_addr_ind_y {
                     self.state = 3;
                     false
                 } else if self.state == 3 {
+                    // 5   address+Y*  R  read from effective address,
+                    //                    fix high byte of effective address
                     let addr: u16 = mk_addr!(self.low, self.high);
                     self.state = 4;
                     if self.carry {
@@ -48,6 +53,7 @@ macro_rules! declare_addr_ind_y {
                         true
                     }
                 } else {
+                    // 6+  address+Y   R  read from effective address
                     let addr: u16 = mk_addr!(self.low, self.high);
                     $action(cpu, addr as usize);
                     true
