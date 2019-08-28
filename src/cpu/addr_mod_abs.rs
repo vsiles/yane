@@ -1,5 +1,5 @@
-macro_rules! declare_addr_abs {
-    ($name:ident, $mnemo:ident, $action:expr) => {
+macro_rules! declare_addr_abs_raw {
+    ($name:ident, $mnemo:ident, $action:expr, $illegal:expr) => {
         pub struct $name {
             low: u8,
             high: u8,
@@ -39,17 +39,27 @@ macro_rules! declare_addr_abs {
                 let addr = mk_addr!(low, high);
                 let val = cpu.mem.get(addr);
                 print!(
-                    "{:04X}  {:02X} {:02X} {:02X}  {} ${:04X}",
+                    "{:04X}  {:02X} {:02X} {:02X} {}{} ${:04X}",
                     pc,
                     code,
                     low,
                     high,
+                    if $illegal { "*" } else { " " },
                     stringify!($mnemo),
                     addr
                 );
                 print!(" = {:02X} {: >17}{}", val, "", cpu)
             }
         }
+    };
+}
+
+macro_rules! declare_addr_abs {
+    ($name:ident, $mnemo:ident, $action:expr) => {
+        declare_addr_abs_raw!($name, $mnemo, $action, false);
+    };
+    ($name:ident, $mnemo:ident, $action:expr, $illegal:expr) => {
+        declare_addr_abs_raw!($name, $mnemo, $action, $illegal);
     };
 }
 

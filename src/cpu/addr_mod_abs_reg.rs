@@ -1,5 +1,5 @@
-macro_rules! declare_addr_abs_reg {
-    ($name:ident, $mnemo:ident, $reg:ident, $action:expr) => {
+macro_rules! declare_addr_abs_reg_raw {
+    ($name:ident, $mnemo:ident, $reg:ident, $action:expr, $illegal:expr) => {
         pub struct $name {
             low: u8,
             high: u8,
@@ -55,11 +55,12 @@ macro_rules! declare_addr_abs_reg {
                 let addr = base.overflowing_add(cpu.$reg as u16).0;
                 let imm = cpu.mem.get(addr);
                 print!(
-                    "{:04X}  {:02X} {:02X} {:02X}  {} ${:04X},{}",
+                    "{:04X}  {:02X} {:02X} {:02X} {}{} ${:04X},{}",
                     pc,
                     code,
                     low,
                     high,
+                    if $illegal { "*" } else { " " },
                     stringify!($mnemo),
                     base,
                     stringify!($reg)
@@ -67,6 +68,15 @@ macro_rules! declare_addr_abs_reg {
                 print!(" @ {:04X} = {:02X} {: >8}{}", addr, imm, "", cpu)
             }
         }
+    };
+}
+
+macro_rules! declare_addr_abs_reg {
+    ($name:ident, $mnemo:ident, $reg:ident, $action:expr) => {
+        declare_addr_abs_reg_raw!($name, $mnemo, $reg, $action, false);
+    };
+    ($name:ident, $mnemo:ident, $reg:ident, $action:expr, $illegal:expr) => {
+        declare_addr_abs_reg_raw!($name, $mnemo, $reg, $action, $illegal);
     };
 }
 

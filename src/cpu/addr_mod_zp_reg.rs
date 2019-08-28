@@ -1,5 +1,5 @@
-macro_rules! declare_addr_zero_page_reg {
-    ($name:ident, $mnemo:ident, $reg:ident, $action:expr) => {
+macro_rules! declare_addr_zero_page_reg_raw {
+    ($name:ident, $mnemo:ident, $reg:ident, $action:expr, $illegal:expr) => {
         pub struct $name {
             addr: u8,
             state: usize,
@@ -35,10 +35,11 @@ macro_rules! declare_addr_zero_page_reg {
                 let faddr = addr.overflowing_add(cpu.$reg).0;
                 let imm = cpu.mem.get(faddr as u16);
                 print!(
-                    "{:04X}  {:02X} {:02X}     {} ${:02X},{}",
+                    "{:04X}  {:02X} {:02X}    {}{} ${:02X},{}",
                     pc,
                     code,
                     addr,
+                    if $illegal { "*" } else { " " },
                     stringify!($mnemo),
                     addr,
                     stringify!($reg)
@@ -46,6 +47,15 @@ macro_rules! declare_addr_zero_page_reg {
                 print!(" @ {:02X} = {:02X}{: >13}{}", faddr, imm, "", cpu);
             }
         }
+    };
+}
+
+macro_rules! declare_addr_zero_page_reg {
+    ($name:ident, $mnemo:ident, $reg:ident, $action:expr) => {
+        declare_addr_zero_page_reg_raw!($name, $mnemo, $reg, $action, false);
+    };
+    ($name:ident, $mnemo:ident, $reg:ident, $action:expr, $illegal:expr) => {
+        declare_addr_zero_page_reg_raw!($name, $mnemo, $reg, $action, $illegal);
     };
 }
 

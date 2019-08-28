@@ -1,7 +1,6 @@
 pub mod cpu;
 #[macro_use]
 pub mod flags;
-pub mod nop;
 pub mod opcode;
 #[macro_use]
 mod macros;
@@ -17,6 +16,8 @@ pub mod decr;
 #[macro_use]
 pub mod trs;
 pub mod rti;
+#[macro_use]
+pub mod addr_mod_nop;
 #[macro_use]
 pub mod addr_mod_imm;
 #[macro_use]
@@ -738,8 +739,13 @@ declare_addr_abs2!(DecAbs, DEC, dec_core);
 declare_addr_zero_page_reg2!(DecZpX, DEC, dec_core);
 declare_addr_abs_reg2!(DecAbsX, DEC, dec_core);
 
-
+declare_addr_nop!(Nop, NOP);
 /* unofficial opcodes */
 
 fn nop_addr(_cpu: &mut Cpu, _val: usize) { }
 declare_addr_zero_page!(NopZp, NOP, nop_addr, true);
+declare_addr_abs!(NopAbs, NOP, nop_addr, true);
+declare_addr_zero_page_reg!(NopZpX, NOP, X, nop_addr, true);
+declare_addr_nop!(NopIllegal, NOP, true);
+declare_addr_imm!(NopImm, NOP, nop_addr, true);
+declare_addr_abs_reg!(NopAbsX, NOP, X, nop_addr, true);

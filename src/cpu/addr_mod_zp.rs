@@ -47,7 +47,7 @@ macro_rules! declare_addr_zero_page {
         declare_addr_zero_page_raw!($name, $mnemo, $action, false);
     };
     ($name:ident, $mnemo:ident, $action:expr, $illegal:expr) => {
-        declare_addr_zero_page_raw!($name, $mnemo, $action, true);
+        declare_addr_zero_page_raw!($name, $mnemo, $action, $illegal);
     };
 }
 
