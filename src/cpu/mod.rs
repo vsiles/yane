@@ -611,6 +611,7 @@ fn lsr_core(cpu: &mut Cpu, data: u8) -> u8 {
 
 declare_addr_zero_page2!(LsrZp, LSR, lsr_core);
 declare_addr_abs2!(LsrAbs, LSR, lsr_core);
+declare_addr_zero_page_reg2!(LsrZpX,  LSR, lsr_core);
 
 pub struct AslA {}
 
@@ -644,6 +645,7 @@ fn asl_core(cpu: &mut Cpu, data: u8) -> u8 {
 
 declare_addr_zero_page2!(AslZp, ASL, asl_core);
 declare_addr_abs2!(AslAbs, ASL, asl_core);
+declare_addr_zero_page_reg2!(AslZpX, ASL, asl_core);
 
 pub struct RorA {}
 
@@ -677,6 +679,7 @@ fn ror_core(cpu: &mut Cpu, data: u8) -> u8 {
 
 declare_addr_zero_page2!(RorZp, ROR, ror_core);
 declare_addr_abs2!(RorAbs, ROR, ror_core);
+declare_addr_zero_page_reg2!(RorZpX, ROR, ror_core);
 
 pub struct RolA {}
 
@@ -710,6 +713,7 @@ fn rol_core(cpu: &mut Cpu, data: u8) -> u8 {
 
 declare_addr_zero_page2!(RolZp, ROL, rol_core);
 declare_addr_abs2!(RolAbs, ROL, rol_core);
+declare_addr_zero_page_reg2!(RolZpX, ROL, rol_core);
 
 fn inc_core(cpu: &mut Cpu, data: u8) -> u8 {
     let res: u8 = data.overflowing_add(1).0;
@@ -720,6 +724,7 @@ fn inc_core(cpu: &mut Cpu, data: u8) -> u8 {
 
 declare_addr_zero_page2!(IncZp, INC, inc_core);
 declare_addr_abs2!(IncAbs, INC, inc_core);
+declare_addr_zero_page_reg2!(IncZpX, INC, inc_core);
 
 fn dec_core(cpu: &mut Cpu, data: u8) -> u8 {
     let res: u8 = data.overflowing_sub(1).0;
@@ -730,3 +735,4 @@ fn dec_core(cpu: &mut Cpu, data: u8) -> u8 {
 
 declare_addr_zero_page2!(DecZp, DEC, dec_core);
 declare_addr_abs2!(DecAbs, DEC, dec_core);
+declare_addr_zero_page_reg2!(DecZpX, DEC, dec_core);
