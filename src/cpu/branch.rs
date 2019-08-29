@@ -38,10 +38,19 @@ macro_rules! declare_branch {
                 if self.state == 0 {
                     self.imm = cpu.read_from_pc() as i8;
                     self.state = 1;
+                    // if  test is false, stop right here (cycle 2)
                     cpu.flags.$flag != $val
-                } else {
+                } else if self.state == 1 {
+                    self.state = 2;
                     let pc : i32 = cpu.pc as i32;
-                    cpu.pc = (pc + (self.imm as i32)) as u16;
+                    let target = (pc + (self.imm as i32)) as u16;
+                    let p0 = (cpu.pc >> 8) & 0x1;
+                    let p1 = (target >> 8) & 0x1;
+                    cpu.pc = target;
+                    // if no page crossing, stop right here (cycle 3)
+                    p0 == p1
+                } else {
+                    // test is taken  _and_ page crossing (cycle 4)
                     true
                 }
             }
