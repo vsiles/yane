@@ -32,8 +32,8 @@ fn cycle(
     cpu: &mut Cpu,
     opcode: &mut Box<dyn OpCode>,
     state: State,
-    _nr: &mut usize,
-    _ppu_cycle: &mut usize,
+    nr: &mut usize,
+    ppu_cycle: &mut usize,
     ) -> State {
     // print!("> [CYCLE {:04} PC {:#04x}]", *nr, cpu.pc);
     match state {
@@ -222,10 +222,10 @@ fn cycle(
                         State::Done
                     }
                 };
-            // let frame_nr = *ppu_cycle / 341;
-            // let ppu = *ppu_cycle % 341;
-            // println!(" PPU:{: >3}, {: >2} CYC:{}", ppu, frame_nr, *nr);
-            println!("");
+            let frame_nr = *ppu_cycle / 341;
+            let ppu = *ppu_cycle % 341;
+            println!(" PPU:{: >3},{: >3} CYC:{}", ppu, frame_nr, *nr);
+            // println!("");
             new_state
         }
         State::Processing => {

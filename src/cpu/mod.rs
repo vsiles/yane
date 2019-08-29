@@ -62,7 +62,7 @@ declare_addr_imm!(AdcImm, ADC, adc_imm);
 declare_addr_zero_page!(AdcZp, ADC, adc_addr);
 declare_addr_abs!(AdcAbs, ADC, adc_addr);
 declare_addr_ind_x!(AdcIndX, ADC, adc_addr);
-declare_addr_ind_y!(AdcIndY, ADC, adc_addr);
+declare_addr_ind_y!(AdcIndY, ADC, adc_addr, false);
 declare_addr_abs_reg!(AdcAbsX, ADC, X, adc_addr);
 declare_addr_abs_reg!(AdcAbsY, ADC, Y, adc_addr);
 declare_addr_zero_page_reg!(AdcZpX, ADC, X, adc_addr);
@@ -97,7 +97,7 @@ declare_addr_imm!(SbcImm, SBC, sbc_imm);
 declare_addr_zero_page!(SbcZp, SBC, sbc_addr);
 declare_addr_abs!(SbcAbs, SBC, sbc_addr);
 declare_addr_ind_x!(SbcIndX, SBC, sbc_addr);
-declare_addr_ind_y!(SbcIndY, SBC, sbc_addr);
+declare_addr_ind_y!(SbcIndY, SBC, sbc_addr, false);
 declare_addr_abs_reg!(SbcAbsX, SBC, X, sbc_addr);
 declare_addr_abs_reg!(SbcAbsY, SBC, Y, sbc_addr);
 declare_addr_zero_page_reg!(SbcZpX, SBC, X, sbc_addr);
@@ -145,9 +145,9 @@ declare_addr_ind_x!(OraIndX, ORA, ora_addr);
 declare_addr_ind_x!(AndIndX, AND, and_addr);
 declare_addr_ind_x!(EorIndX, EOR, eor_addr);
 
-declare_addr_ind_y!(OraIndY, ORA, ora_addr);
-declare_addr_ind_y!(AndIndY, AND, and_addr);
-declare_addr_ind_y!(EorIndY, EOR, eor_addr);
+declare_addr_ind_y!(OraIndY, ORA, ora_addr, false);
+declare_addr_ind_y!(AndIndY, AND, and_addr, false);
+declare_addr_ind_y!(EorIndY, EOR, eor_addr, false);
 
 declare_addr_abs_reg!(OraAbsX, ORA, X, ora_addr);
 declare_addr_abs_reg!(OraAbsY, ORA, Y, ora_addr);
@@ -268,7 +268,7 @@ declare_addr_abs!(CpxAbs, CPX, cmp_addr_x);
 declare_addr_abs!(CpyAbs, CPY, cmp_addr_y);
 
 declare_addr_ind_x!(CmpIndX, CMP, cmp_addr_a);
-declare_addr_ind_y!(CmpIndY, CMP, cmp_addr_a);
+declare_addr_ind_y!(CmpIndY, CMP, cmp_addr_a, false);
 
 declare_addr_abs_reg!(CmpAbsX, CMP, X, cmp_addr_a);
 declare_addr_abs_reg!(CmpAbsY, CMP, Y, cmp_addr_a);
@@ -324,7 +324,7 @@ declare_addr_abs_reg!(LdxAbsY, LDX, Y, load_addr_x);
 declare_addr_abs_reg!(LdyAbsX, LDY, X, load_addr_y);
 
 declare_addr_ind_x!(LdaIndX, LDA, load_addr_a);
-declare_addr_ind_y!(LdaIndY, LDA, load_addr_a);
+declare_addr_ind_y!(LdaIndY, LDA, load_addr_a, false);
 
 // STA, STX, STY
 macro_rules! store_impl {
@@ -353,11 +353,11 @@ declare_addr_abs!(StaAbs, STA, store_a);
 declare_addr_abs!(StxAbs, STX, store_x);
 declare_addr_abs!(StyAbs, STY, store_y);
 
-declare_addr_abs_reg!(StaAbsX, STA, X, store_a);
-declare_addr_abs_reg!(StaAbsY, STA, Y, store_a);
+declare_addr_abs_reg!(StaAbsX, STA, X, store_a, true);
+declare_addr_abs_reg!(StaAbsY, STA, Y, store_a, true);
 
 declare_addr_ind_x!(StaIndX, STA, store_a);
-declare_addr_ind_y!(StaIndY, STA, store_a);
+declare_addr_ind_y!(StaIndY, STA, store_a, true);
 
 // SEC, SED, SEI, CLC, CLD, CLI
 declare_flags_opcode!(Sec, SEC, carry, true);
@@ -748,4 +748,4 @@ declare_addr_abs!(NopAbs, NOP, nop_addr, true);
 declare_addr_zero_page_reg!(NopZpX, NOP, X, nop_addr, true);
 declare_addr_nop!(NopIllegal, NOP, true);
 declare_addr_imm!(NopImm, NOP, nop_addr, true);
-declare_addr_abs_reg!(NopAbsX, NOP, X, nop_addr, true);
+declare_addr_abs_reg!(NopAbsX, NOP, X, nop_addr, false, true);

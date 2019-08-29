@@ -1,5 +1,5 @@
 macro_rules! declare_addr_ind_y {
-    ($name:ident, $mnemo:ident, $action:ident) => {
+    ($name:ident, $mnemo:ident, $action:ident, $store:expr) => {
         pub struct $name {
             low: u8,
             high: u8,
@@ -49,8 +49,12 @@ macro_rules! declare_addr_ind_y {
                         self.high = self.high.overflowing_add(1).0;
                         false
                     } else {
-                        $action(cpu, addr as usize);
-                        true
+                        if $store {
+                            false // ST* are always 6 cycles long
+                        } else {
+                            $action(cpu, addr as usize);
+                            true
+                        }
                     }
                 } else {
                     // 6+  address+Y   R  read from effective address

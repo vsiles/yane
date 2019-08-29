@@ -1,5 +1,5 @@
 macro_rules! declare_addr_abs_reg_raw {
-    ($name:ident, $mnemo:ident, $reg:ident, $action:expr, $illegal:expr) => {
+    ($name:ident, $mnemo:ident, $reg:ident, $action:expr, $store:expr, $illegal:expr) => {
         pub struct $name {
             low: u8,
             high: u8,
@@ -31,13 +31,17 @@ macro_rules! declare_addr_abs_reg_raw {
                     false
                 } else if self.state == 2 {
                     let addr: u16 = mk_addr!(self.low, self.high);
+                    self.state = 3;
                     if self.carry {
                         self.high = self.high.overflowing_add(1).0;
-                        self.state = 3;
                         false
                     } else {
-                        $action(cpu, addr as usize);
-                        true
+                        if $store {
+                            false
+                        } else {
+                            $action(cpu, addr as usize);
+                            true
+                        }
                     }
                 } else {
                     let addr: u16 = mk_addr!(self.low, self.high);
@@ -73,10 +77,13 @@ macro_rules! declare_addr_abs_reg_raw {
 
 macro_rules! declare_addr_abs_reg {
     ($name:ident, $mnemo:ident, $reg:ident, $action:expr) => {
-        declare_addr_abs_reg_raw!($name, $mnemo, $reg, $action, false);
+        declare_addr_abs_reg_raw!($name, $mnemo, $reg, $action, false, false);
     };
-    ($name:ident, $mnemo:ident, $reg:ident, $action:expr, $illegal:expr) => {
-        declare_addr_abs_reg_raw!($name, $mnemo, $reg, $action, $illegal);
+    ($name:ident, $mnemo:ident, $reg:ident, $action:expr, $store:expr) => {
+        declare_addr_abs_reg_raw!($name, $mnemo, $reg, $action, $store, false);
+    };
+    ($name:ident, $mnemo:ident, $reg:ident, $action:expr, $store:expr, $illegal:expr) => {
+        declare_addr_abs_reg_raw!($name, $mnemo, $reg, $action, $store, $illegal);
     };
 }
 
