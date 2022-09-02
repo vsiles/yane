@@ -209,7 +209,6 @@ impl Cpu {
         self.update_zero_and_negative(self.a);
     }
 
-
     fn inx(&mut self) {
         self.x = self.x.wrapping_add(1);
         self.update_zero_and_negative(self.x);
@@ -336,6 +335,43 @@ impl Cpu {
 
     fn nop(&self) {}
 
+    // Add to A with Carry
+    // Ignoring decimal mode
+    /// http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
+    fn add_to_a(&mut self, data: u8) {
+        let sum = self.a as u16
+            + data as u16
+            + (if self.ps.carry {
+                1
+            } else {
+                0
+            }) as u16;
+
+        let carry = sum > 0xff;
+        self.ps.set(Carry, carry);
+
+        let result = sum as u8;
+
+        let overflow : bool = (data ^ result) & (result ^ self.a) & 0x80 != 0;
+        self.ps.set(Overflow, overflow);
+
+        self.a = result;
+        self.update_zero_and_negative(self.a);
+    }
+
+    fn sbc(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(&mode);
+        let data = self.mem_read(addr);
+        // A - B = A + (-B) and -B = !B + 1
+        self.add_to_a(((data as i8).wrapping_neg().wrapping_sub(1)) as u8);
+    }
+
+    fn adc(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let value = self.mem_read(addr);
+        self.add_to_a(value);
+    }
+
     pub fn run(&mut self) {
         let ref opcodes: HashMap<u8, &'static opcodes::OpCode> = *opcodes::OPCODES_MAP;
         loop {
@@ -423,6 +459,14 @@ impl Cpu {
                 0xE8 => self.inx(),
                 // NOP
                 0xEA => self.nop(),
+                // ADC
+                0x69 | 0x65 | 0x75 | 0x6D | 0x7D | 0x79 | 0x61 | 0x71 => {
+                    self.adc(&opcode.mode)
+                }
+                // SBC
+                0xE9 | 0xE5 | 0xF5 | 0xED | 0xFD | 0xF9 | 0xE1 | 0xF1 => {
+                    self.sbc(&opcode.mode)
+                }
                 _ => todo!(),
             }
 
