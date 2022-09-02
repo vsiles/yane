@@ -79,6 +79,7 @@ pub struct Cpu {
     pub x: u8,
     pub ps: Status,
     pub pc: u16,
+    memory: [u8; 0xFFFF],
 }
 
 impl Cpu {
@@ -88,7 +89,50 @@ impl Cpu {
             x: 0,
             ps: Status::new(),
             pc: 0,
+            memory: [0; 0xFFFF],
         }
+    }
+
+    fn mem_read(&self, addr: u16) -> u8 {
+        self.memory[addr as usize]
+    }
+
+    fn mem_read_u16(&self, pos: u16) -> u16 {
+        let low = self.mem_read(pos) as u16;
+        // TODO: check if this +1 can oveflow
+        let high = self.mem_read(pos + 1) as u16;
+        (high << 8) | (low as u16)
+    }
+
+    fn mem_write(&mut self, addr: u16, data: u8) {
+        self.memory[addr as usize] = data
+    }
+
+    fn mem_write_u16(&mut self, pos: u16, data: u16) {
+        let high = (data >> 8) as u8;
+        let low = (data & 0xff) as u8;
+        self.mem_write(pos, low);
+        // TODO: check if this +1 can oveflow
+        self.mem_write(pos + 1, high);
+    }
+
+    pub fn reset(&mut self) {
+        self.a = 0;
+        self.x = 0;
+        self.ps = Status::from(0);
+
+        self.pc = self.mem_read_u16(0xFFFC);
+    }
+
+    pub fn load_and_run(&mut self, program: Vec<u8>) {
+        self.load(program);
+        self.reset();
+        self.run()
+    }
+
+    pub fn load(&mut self, program: Vec<u8>) {
+        self.memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program[..]);
+        self.mem_write_u16(0xFFFC, 0x8000)
     }
 
     fn update_zero_and_negative(&mut self, result: u8) {
@@ -113,11 +157,9 @@ impl Cpu {
         self.update_zero_and_negative(self.x);
     }
 
-    pub fn interpret(&mut self, program: Vec<u8>) {
-        self.pc = 0;
-
+    pub fn run(&mut self) {
         loop {
-            let opcode = program[self.pc as usize];
+            let opcode = self.mem_read(self.pc);
             self.pc += 1;
 
             match opcode {
@@ -126,7 +168,7 @@ impl Cpu {
                 // LDA
                 0xA9 => {
                     // 2 Cycles
-                    let a = program[self.pc as usize];
+                    let a = self.mem_read(self.pc);
                     self.pc += 1;
                     self.lda(a);
                 }
@@ -147,7 +189,7 @@ mod test {
     #[test]
     fn test_0xa9_lda_imm() {
         let mut cpu = Cpu::new();
-        cpu.interpret(vec![0xa9, 0x05, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0x05, 0x00]);
         assert_eq!(cpu.a, 0x05);
         assert!(cpu.ps.zero == false);
         assert!(cpu.ps.negative == false);
@@ -156,7 +198,7 @@ mod test {
     #[test]
     fn test_0xa9_lda_zero_flag() {
         let mut cpu = Cpu::new();
-        cpu.interpret(vec![0xa9, 0x00, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0x00, 0x00]);
         assert_eq!(cpu.a, 0x00);
         assert!(cpu.ps.zero == true);
         assert!(cpu.ps.negative == false);
@@ -165,7 +207,7 @@ mod test {
     #[test]
     fn test_0xa9_lda_neg_flag() {
         let mut cpu = Cpu::new();
-        cpu.interpret(vec![0xa9, 0xf0, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0xf0, 0x00]);
         assert_eq!(cpu.a, 0xf0);
         assert!(cpu.ps.zero == false);
         assert!(cpu.ps.negative == true);
@@ -174,8 +216,7 @@ mod test {
     #[test]
     fn test_0xaa_tax() {
         let mut cpu = Cpu::new();
-        cpu.a = 0x0b;
-        cpu.interpret(vec![0xaa, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0x0b, 0xaa, 0x00]);
         assert_eq!(cpu.a, 0x0b);
         assert_eq!(cpu.x, 0x0b);
         assert!(cpu.ps.zero == false);
@@ -186,7 +227,7 @@ mod test {
     fn test_0xaa_tax_zero_flag() {
         let mut cpu = Cpu::new();
         cpu.x = 0x0b;
-        cpu.interpret(vec![0xaa, 0x00]);
+        cpu.load_and_run(vec![0xaa, 0x00]);
         assert_eq!(cpu.x, 0x00);
         assert!(cpu.ps.zero == true);
         assert!(cpu.ps.negative == false);
@@ -195,9 +236,7 @@ mod test {
     #[test]
     fn test_0xaa_tax_negative_flag() {
         let mut cpu = Cpu::new();
-        cpu.x = 0x0b;
-        cpu.a = 0xf0;
-        cpu.interpret(vec![0xaa, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0xf0, 0xaa, 0x00]);
         assert_eq!(cpu.x, 0xf0);
         assert!(cpu.ps.zero == false);
         assert!(cpu.ps.negative == true);
@@ -206,8 +245,7 @@ mod test {
     #[test]
     fn test_0xe8_inx() {
         let mut cpu = Cpu::new();
-        cpu.x = 0x0a;
-        cpu.interpret(vec![0xe8, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0x0a, 0xaa, 0xe8, 0x00]);
         assert_eq!(cpu.x, 0x0b);
         assert!(cpu.ps.zero == false);
         assert!(cpu.ps.negative == false);
@@ -216,8 +254,7 @@ mod test {
     #[test]
     fn test_0xe8_inx_zero_flag() {
         let mut cpu = Cpu::new();
-        cpu.x = 0xff;
-        cpu.interpret(vec![0xe8, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0xff, 0xaa, 0xe8, 0x00]);
         assert_eq!(cpu.x, 0x00);
         assert!(cpu.ps.zero == true);
         assert!(cpu.ps.negative == false);
@@ -226,8 +263,7 @@ mod test {
     #[test]
     fn test_0xe8_inx_negative_flag() {
         let mut cpu = Cpu::new();
-        cpu.x = 0xf0;
-        cpu.interpret(vec![0xe8, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0xf0, 0xaa, 0xe8, 0x00]);
         assert_eq!(cpu.x, 0xf1);
         assert!(cpu.ps.zero == false);
         assert!(cpu.ps.negative == true);
@@ -236,7 +272,7 @@ mod test {
     #[test]
     fn test_5_ops_working_together() {
         let mut cpu = Cpu::new();
-        cpu.interpret(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
 
         assert_eq!(cpu.x, 0xc1)
     }
@@ -244,8 +280,7 @@ mod test {
     #[test]
     fn test_inx_overflow() {
         let mut cpu = Cpu::new();
-        cpu.x = 0xff;
-        cpu.interpret(vec![0xe8, 0xe8, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0xff, 0xaa, 0xe8, 0xe8, 0x00]);
 
         assert_eq!(cpu.x, 1)
     }
