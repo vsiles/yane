@@ -79,6 +79,7 @@ impl Cpu {
         self.pc = self.mem_read_u16(0xFFFC);
     }
 
+    #[allow(dead_code)]
     pub fn load_and_run(&mut self, program: Vec<u8>) {
         self.load(program);
         self.reset();
@@ -213,21 +214,21 @@ impl Cpu {
     fn and(&mut self, mode: &AddressingMode) {
         let addr = self.get_operand_address(mode);
         let value = self.mem_read(addr);
-        self.a = self.a & value;
+        self.a &= value;
         self.update_zero_and_negative(self.a);
     }
 
     fn eor(&mut self, mode: &AddressingMode) {
         let addr = self.get_operand_address(mode);
         let value = self.mem_read(addr);
-        self.a = self.a ^ value;
+        self.a ^= value;
         self.update_zero_and_negative(self.a);
     }
 
     fn ora(&mut self, mode: &AddressingMode) {
         let addr = self.get_operand_address(mode);
         let value = self.mem_read(addr);
-        self.a = self.a | value;
+        self.a |= value;
         self.update_zero_and_negative(self.a);
     }
 
@@ -235,7 +236,7 @@ impl Cpu {
         let mut data = self.a;
         let bit7 = (data >> 7) & 0x1;
         self.ps.set(Carry, bit7 != 0);
-        data = data << 1;
+        data <<= 1;
         self.a = data;
         self.update_zero_and_negative(self.a);
     }
@@ -245,7 +246,7 @@ impl Cpu {
         let mut data = self.mem_read(addr);
         let bit7 = (data >> 7) & 0x1;
         self.ps.set(Carry, bit7 != 0);
-        data = data << 1;
+        data <<= 1;
         self.mem_write(addr, data);
         self.update_zero_and_negative(data);
     }
@@ -254,7 +255,7 @@ impl Cpu {
         let mut data = self.a;
         let bit0 = data & 0x1;
         self.ps.set(Carry, bit0 != 0);
-        data = data >> 1;
+        data >>= 1;
         self.a = data;
         self.update_zero_and_negative(self.a);
     }
@@ -264,7 +265,7 @@ impl Cpu {
         let mut data = self.mem_read(addr);
         let bit0 = data & 0x1;
         self.ps.set(Carry, bit0 != 0);
-        data = data >> 1;
+        data >>= 1;
         self.mem_write(addr, data);
         self.update_zero_and_negative(data);
     }
@@ -350,7 +351,7 @@ impl Cpu {
     }
 
     fn sbc(&mut self, mode: &AddressingMode) {
-        let addr = self.get_operand_address(&mode);
+        let addr = self.get_operand_address(mode);
         let data = self.mem_read(addr);
         // A - B = A + (-B) and -B = !B + 1
         self.add_to_a(((data as i8).wrapping_neg().wrapping_sub(1)) as u8);
@@ -395,7 +396,7 @@ impl Cpu {
         let sps = &self.ps;
         //http://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior
         let mut ps: u8 = sps.into();
-        ps = ps | (0x3 << 4);
+        ps |= (0x3 << 4);
         self.stack_push(ps)
     }
 
@@ -528,9 +529,18 @@ impl Cpu {
         self.update_zero_and_negative(self.y);
     }
 
+    #[allow(dead_code)]
     pub fn run(&mut self) {
-        let ref opcodes: HashMap<u8, &'static opcodes::OpCode> = *opcodes::OPCODES_MAP;
+        self.run_with_callback(|_| {});
+    }
+
+    pub fn run_with_callback<F>(&mut self, mut callback: F)
+    where
+        F: FnMut(&mut Cpu),
+    {
+        let opcodes: &HashMap<u8, &'static opcodes::OpCode> = &(*opcodes::OPCODES_MAP);
         loop {
+            callback(self);
             let code = self.mem_read(self.pc);
             self.pc += 1;
 
@@ -538,7 +548,7 @@ impl Cpu {
 
             let opcode = opcodes
                 .get(&code)
-                .expect(&format!("OpCode {:x} is not supported", code));
+                .unwrap_or_else(|| panic!("OpCode {:x} is not supported", code));
 
             match code {
                 // BRK : TODO
@@ -626,7 +636,7 @@ impl Cpu {
                 // PLP
                 0x28 => self.plp(),
                 // BCC
-                0x90 => self.branch(self.ps.carry == false),
+                0x90 => self.branch(!self.ps.carry),
                 // BCS
                 0xB0 => self.branch(self.ps.carry),
                 // BEQ
@@ -634,11 +644,11 @@ impl Cpu {
                 // BMI
                 0x30 => self.branch(self.ps.negative),
                 // BNE
-                0xD0 => self.branch(self.ps.zero == false),
+                0xD0 => self.branch(!self.ps.zero),
                 // BPL
-                0x10 => self.branch(self.ps.negative == false),
+                0x10 => self.branch(!self.ps.negative),
                 // BVC
-                0x50 => self.branch(self.ps.overflow == false),
+                0x50 => self.branch(!self.ps.overflow),
                 // BVS
                 0x70 => self.branch(self.ps.overflow),
                 // CMP

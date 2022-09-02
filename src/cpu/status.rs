@@ -52,32 +52,38 @@ impl Status {
     }
 }
 
+impl Default for Status {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl From<&Status> for u8 {
     fn from(s: &Status) -> Self {
         let mut res = 0;
         if s.carry {
-            res = res | (1 << 0);
+            res |= (1 << 0);
         }
         if s.zero {
-            res = res | (1 << 1);
+            res |= (1 << 1);
         }
         if s.interrupt {
-            res = res | (1 << 2);
+            res |= (1 << 2);
         }
         if s.decimal {
-            res = res | (1 << 3);
+            res |= (1 << 3);
         }
         if s.break0 {
-            res = res | (1 << 4);
+            res |= (1 << 4);
         }
         if s.break1 {
-            res = res | (1 << 5);
+            res |= (1 << 5);
         }
         if s.overflow {
-            res = res | (1 << 6);
+            res |= (1 << 6);
         }
         if s.negative {
-            res = res | (1 << 7);
+            res |= (1 << 7);
         }
         res
     }
