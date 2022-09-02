@@ -6,12 +6,16 @@ use status::*;
 
 mod opcodes;
 
+const STACK: u16 = 0x0100;
+const STACK_RESET: u8 = 0xfd;
+
 pub struct Cpu {
     pub a: u8,
     pub x: u8,
     pub y: u8,
     pub ps: Status,
     pub pc: u16,
+    pub sp: u8,
     memory: [u8; 0xFFFF],
 }
 
@@ -37,6 +41,7 @@ impl Cpu {
             y: 0,
             ps: Status::new(),
             pc: 0,
+            sp: STACK_RESET,
             memory: [0; 0xFFFF],
         }
     }
@@ -165,10 +170,45 @@ impl Cpu {
         self.mem_write(addr, self.a);
     }
 
+    fn stx(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        self.mem_write(addr, self.x);
+    }
+
+    fn sty(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        self.mem_write(addr, self.y);
+    }
+
     fn tax(&mut self) {
         self.x = self.a;
         self.update_zero_and_negative(self.x);
     }
+
+    fn tay(&mut self) {
+        self.y = self.a;
+        self.update_zero_and_negative(self.y);
+    }
+
+    fn tsx(&mut self) {
+        self.x = self.sp;
+        self.update_zero_and_negative(self.x);
+    }
+
+    fn txa(&mut self) {
+        self.a = self.x;
+        self.update_zero_and_negative(self.a);
+    }
+
+    fn txs(&mut self) {
+        self.sp = self.x;
+    }
+
+    fn tya(&mut self) {
+        self.a = self.y;
+        self.update_zero_and_negative(self.a);
+    }
+
 
     fn inx(&mut self) {
         self.x = self.x.wrapping_add(1);
@@ -234,6 +274,50 @@ impl Cpu {
         self.update_zero_and_negative(data);
     }
 
+    fn rol_a(&mut self) {
+        let mut data = self.a;
+        let bit7 = (data >> 7) & 0x1;
+        let carry  = if self.ps.carry { 1 } else { 0 };
+        self.ps.set(Carry, bit7 != 0);
+        data = (data << 1) | (carry as u8);
+        self.a = data;
+        self.update_zero_and_negative(self.a);
+    }
+
+    fn rol(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let mut data = self.mem_read(addr);
+        let bit7 = (data >> 7) & 0x1;
+        let carry  = if self.ps.carry { 1 } else { 0 };
+        self.ps.set(Carry, bit7 != 0);
+        data = (data << 1) | (carry as u8);
+        self.mem_write(addr, data);
+        self.update_zero_and_negative(data);
+    }
+
+    fn ror_a(&mut self) {
+        let mut data = self.a;
+        let bit0 = data & 0x1;
+        let carry  = if self.ps.carry { 1 } else { 0 };
+        let carry = (carry as u8) << 7;
+        self.ps.set(Carry, bit0 != 0);
+        data = (data >> 1) | carry;
+        self.a = data;
+        self.update_zero_and_negative(self.a);
+    }
+
+    fn ror(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let mut data = self.mem_read(addr);
+        let bit0 = data & 0x1;
+        let carry  = if self.ps.carry { 1 } else { 0 };
+        let carry = (carry as u8) << 7;
+        self.ps.set(Carry, bit0 != 0);
+        data = (data >> 1) | carry;
+        self.mem_write(addr, data);
+        self.update_zero_and_negative(data);
+    }
+
     fn bit(&mut self, mode: &AddressingMode) {
         let addr = self.get_operand_address(mode);
         let data = self.mem_read(addr);
@@ -279,6 +363,10 @@ impl Cpu {
                 0x85 | 0x95 | 0x8D | 0x9D | 0x99 | 0x81 | 0x91 => {
                     self.sta(&opcode.mode);
                 }
+                // STX
+                0x86 | 0x96 | 0x8E => self.stx(&opcode.mode),
+                // STY
+                0x84 | 0x94 | 0x8C => self.sty(&opcode.mode),
                 // AND
                 0x29 | 0x25 | 0x35 | 0x2D | 0x3D | 0x39 | 0x21 | 0x31 => {
                     self.and(&opcode.mode);
@@ -294,9 +382,15 @@ impl Cpu {
                 // ASL
                 0x0A => self.asl_a(),
                 0x06 | 0x16 | 0x0E | 0x1E => self.asl(&opcode.mode),
+                // ROL
+                0x2A => self.rol_a(),
+                0x26 | 0x36 | 0x2E | 0x3E => self.rol(&opcode.mode),
                 // LSR
                 0x4A => self.lsr_a(),
                 0x46 | 0x56 | 0x4E | 0x5E => self.lsr(&opcode.mode),
+                // ROR
+                0x6A => self.ror_a(),
+                0x66 | 0x76 | 0x6E | 0x7E => self.ror(&opcode.mode),
                 // BIT
                 0x24 | 0x2C => self.bit(&opcode.mode),
                 // CLC
@@ -307,9 +401,25 @@ impl Cpu {
                 0x58 => self.set_flag(Interrupt, false), 
                 // CLV
                 0xB8 => self.set_flag(Overflow, false), 
-                // TAX : 2 Cycles
+                // SEC
+                0x38 => self.set_flag(Carry, true),
+                // SED
+                0xF8 => self.set_flag(Decimal, true),
+                // SEI
+                0x78 => self.set_flag(Interrupt, true),
+                // TAX
                 0xAA => self.tax(),
-                // INX : 2 Cycles
+                // TAY
+                0xA8 => self.tay(),
+                // TSX
+                0xBA => self.tsx(),
+                // TXA
+                0x8A => self.txa(),
+                // TXS
+                0x9A => self.txs(),
+                // TYA
+                0x98 => self.tya(),
+                // INX
                 0xE8 => self.inx(),
                 // NOP
                 0xEA => self.nop(),
