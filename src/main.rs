@@ -142,6 +142,7 @@ fn main() {
             canvas.copy(&texture, None, None).unwrap();
             canvas.present();
         }
-        ::std::thread::sleep(std::time::Duration::new(0, 70_000));
+        // ::std::thread::sleep(std::time::Duration::new(0, 70_000));
+        spin_sleep::sleep(std::time::Duration::new(0, 70_000));
     });
 }
