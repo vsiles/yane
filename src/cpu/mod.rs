@@ -48,17 +48,17 @@ impl Cpu {
     }
 
     // Memory related actions
-    fn mem_read(&self, addr: u16) -> u8 {
+    pub fn mem_read(&self, addr: u16) -> u8 {
         self.memory[addr as usize]
     }
 
     fn mem_read_u16(&self, pos: u16) -> u16 {
         let low = self.mem_read(pos) as u16;
-        let high = self.mem_read(pos.wrapping_add(1)) as u16;
+        let high = self.mem_read(pos + 1) as u16;
         (high << 8) | (low as u16)
     }
 
-    fn mem_write(&mut self, addr: u16, data: u8) {
+    pub fn mem_write(&mut self, addr: u16, data: u8) {
         self.memory[addr as usize] = data
     }
 
@@ -66,7 +66,7 @@ impl Cpu {
         let high = (data >> 8) as u8;
         let low = (data & 0xff) as u8;
         self.mem_write(pos, low);
-        self.mem_write(pos.wrapping_add(1), high);
+        self.mem_write(pos + 1, high);
     }
 
     // Global actions & entry points
@@ -87,8 +87,10 @@ impl Cpu {
     }
 
     pub fn load(&mut self, program: Vec<u8>) {
-        self.memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program[..]);
-        self.mem_write_u16(0xFFFC, 0x8000)
+        // self.memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program[..]);
+        self.memory[0x600..(0x600 + program.len())].copy_from_slice(&program[..]);
+        // self.mem_write_u16(0xFFFC, 0x8000)
+        self.mem_write_u16(0xFFFC, 0x600)
     }
 
     // Addressing Modes
@@ -541,6 +543,7 @@ impl Cpu {
         let opcodes: &HashMap<u8, &'static opcodes::OpCode> = &(*opcodes::OPCODES_MAP);
         loop {
             callback(self);
+            // eprintln!("PC = {:#04x}", self.pc);
             let code = self.mem_read(self.pc);
             self.pc += 1;
 
@@ -550,6 +553,7 @@ impl Cpu {
                 .get(&code)
                 .unwrap_or_else(|| panic!("OpCode {:x} is not supported", code));
 
+            // eprintln!("Decoding {:#?}", opcode);
             match code {
                 // BRK : TODO
                 0x00 => return,

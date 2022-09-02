@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 use crate::cpu::AddressingMode;
 
+#[derive(Debug)]
 pub struct OpCode {
     pub code: u8,
     pub mnemonic: &'static str,
