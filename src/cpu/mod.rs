@@ -146,6 +146,20 @@ impl Cpu {
         self.update_zero_and_negative(self.a);
     }
 
+    fn ldx(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let value = self.mem_read(addr);
+        self.x = value;
+        self.update_zero_and_negative(self.x);
+    }
+
+    fn ldy(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let value = self.mem_read(addr);
+        self.y = value;
+        self.update_zero_and_negative(self.y);
+    }
+
     fn sta(&mut self, mode: &AddressingMode) {
         let addr = self.get_operand_address(mode);
         self.mem_write(addr, self.a);
@@ -160,6 +174,83 @@ impl Cpu {
         self.x = self.x.wrapping_add(1);
         self.update_zero_and_negative(self.x);
     }
+
+    fn and(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let value = self.mem_read(addr);
+        self.a = self.a & value;
+        self.update_zero_and_negative(self.a);
+    }
+
+    fn eor(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let value = self.mem_read(addr);
+        self.a = self.a ^ value;
+        self.update_zero_and_negative(self.a);
+    }
+    
+    fn ora(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let value = self.mem_read(addr);
+        self.a = self.a | value;
+        self.update_zero_and_negative(self.a);
+    }
+
+    fn asl_a(&mut self) {
+        let mut data = self.a;
+        let bit7 = (data >> 7) & 0x1;
+        self.ps.set(Carry, bit7 != 0);
+        data = data << 1;
+        self.a = data;
+        self.update_zero_and_negative(self.a);
+    }
+
+    fn asl(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let mut data = self.mem_read(addr);
+        let bit7 = (data >> 7) & 0x1;
+        self.ps.set(Carry, bit7 != 0);
+        data = data << 1;
+        self.mem_write(addr, data);
+        self.update_zero_and_negative(data);
+    }
+
+    fn lsr_a(&mut self) {
+        let mut data = self.a;
+        let bit0 = data & 0x1;
+        self.ps.set(Carry, bit0 != 0);
+        data = data >> 1;
+        self.a = data;
+        self.update_zero_and_negative(self.a);
+    }
+
+    fn lsr(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let mut data = self.mem_read(addr);
+        let bit0 = data & 0x1;
+        self.ps.set(Carry, bit0 != 0);
+        data = data >> 1;
+        self.mem_write(addr, data);
+        self.update_zero_and_negative(data);
+    }
+
+    fn bit(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let data = self.mem_read(addr);
+        let bit6 = (data >> 6) & 0x1;
+        let bit7 = (data >> 7) & 0x1;
+
+        let res = self.a & data;
+        self.ps.set(Zero, res == 0);
+        self.ps.set(Overflow, bit6 != 0);
+        self.ps.set(Negative, bit7 != 0);
+    }
+
+    fn set_flag(&mut self, flag: StatusFlag, state: bool) {
+        self.ps.set(flag, state)
+    }
+
+    fn nop(&self) {}
 
     pub fn run(&mut self) {
         let ref opcodes: HashMap<u8, &'static opcodes::OpCode> = *opcodes::OPCODES_MAP;
@@ -180,14 +271,48 @@ impl Cpu {
                 0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
                     self.lda(&opcode.mode);
                 }
+                // LDX
+                0xA2 | 0xA6 | 0xB6 | 0xAE | 0xBE => self.ldx(&opcode.mode),
+                // LDY
+                0xA0 | 0xA4 | 0xB4 | 0xAC | 0xBC => self.ldy(&opcode.mode),
                 // STA
                 0x85 | 0x95 | 0x8D | 0x9D | 0x99 | 0x81 | 0x91 => {
                     self.sta(&opcode.mode);
                 }
+                // AND
+                0x29 | 0x25 | 0x35 | 0x2D | 0x3D | 0x39 | 0x21 | 0x31 => {
+                    self.and(&opcode.mode);
+                }
+                // EOR
+                0x49 | 0x45 | 0x55 | 0x4D | 0x5D | 0x59 | 0x41 | 0x51 => {
+                    self.eor(&opcode.mode);
+                }
+                // ORA
+                0x09 | 0x05 | 0x15 | 0x0D | 0x1D | 0x19 | 0x01 | 0x11 => {
+                    self.ora(&opcode.mode);
+                }
+                // ASL
+                0x0A => self.asl_a(),
+                0x06 | 0x16 | 0x0E | 0x1E => self.asl(&opcode.mode),
+                // LSR
+                0x4A => self.lsr_a(),
+                0x46 | 0x56 | 0x4E | 0x5E => self.lsr(&opcode.mode),
+                // BIT
+                0x24 | 0x2C => self.bit(&opcode.mode),
+                // CLC
+                0x18 => self.set_flag(Carry, false), 
+                // CLD
+                0xD8 => self.set_flag(Decimal, false), 
+                // CLI
+                0x58 => self.set_flag(Interrupt, false), 
+                // CLV
+                0xB8 => self.set_flag(Overflow, false), 
                 // TAX : 2 Cycles
                 0xAA => self.tax(),
                 // INX : 2 Cycles
                 0xE8 => self.inx(),
+                // NOP
+                0xEA => self.nop(),
                 _ => todo!(),
             }
 
