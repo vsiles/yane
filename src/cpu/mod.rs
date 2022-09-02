@@ -8,6 +8,7 @@ mod opcodes;
 
 const STACK: u16 = 0x0100;
 const STACK_RESET: u8 = 0xfd;
+const BRK_IRQ_BASE: u16 = 0xFFFE;
 
 pub struct Cpu {
     pub a: u8,
@@ -207,11 +208,6 @@ impl Cpu {
     fn tya(&mut self) {
         self.a = self.y;
         self.update_zero_and_negative(self.a);
-    }
-
-    fn inx(&mut self) {
-        self.x = self.x.wrapping_add(1);
-        self.update_zero_and_negative(self.x);
     }
 
     fn and(&mut self, mode: &AddressingMode) {
@@ -415,6 +411,123 @@ impl Cpu {
         self.ps.break1 = true;
     }
 
+    // Jump/Branching
+    fn branch(&mut self, condition: bool) {
+        if condition {
+            let jump: i8 = self.mem_read(self.pc) as i8;
+            let jump_addr = self.pc.wrapping_add(1).wrapping_add(jump as u16);
+            self.pc = jump_addr;
+        }
+    }
+
+    fn jmp_abs(&mut self) {
+        let addr = self.mem_read_u16(self.pc);
+        self.pc = addr;
+    }
+
+    fn jmp_indirect(&mut self) {
+        let addr = self.mem_read_u16(self.pc);
+        // https://www.nesdev.org/obelisk-6502-guide/reference.html#JMP
+        // let indirect_ref = self.mem_read_u16(addr);
+
+        let indirect_ref = if addr & 0x00FF == 0x00FF {
+            let low = self.mem_read(addr);
+            let high = self.mem_read(addr & 0xFF00);
+            (high as u16) << 8 | (low as u16)
+        } else {
+            self.mem_read_u16(addr)
+        };
+
+        self.pc = indirect_ref;
+    }
+
+    fn jsr(&mut self) {
+        self.stack_push_u16(self.pc + 2 - 1); // push return addr - 1
+        let addr = self.mem_read_u16(self.pc);
+        self.pc = addr;
+    }
+
+    fn rti(&mut self) {
+        self.ps = self.stack_pop().into();
+        self.ps.set(Break0, false);
+        self.ps.set(Break1, true);
+
+        self.pc = self.stack_pop_u16();
+    }
+
+    fn rts(&mut self) {
+        self.pc = self.stack_pop_u16() + 1;
+    }
+
+    #[allow(dead_code)]
+    fn brk(&mut self) {
+        // #  address R/W description
+        // --- ------- --- -----------------------------------------------
+        //  1    PC     R  fetch opcode, increment PC
+        //  2    PC     R  read next instruction byte (and throw it away),
+        //                 increment PC
+        //  3  $0100,S  W  push PCH on stack, decrement S
+        //  4  $0100,S  W  push PCL on stack, decrement S
+        // *** At this point, the signal status determines which interrupt vector is used ***
+        //  5  $0100,S  W  push P on stack (with B flag set), decrement S
+        //  6   $FFFE   R  fetch PCL, set I flag
+        //  7   $FFFF   R  fetch PCH
+        //
+        // 1 is done by the `run` method.
+        // 2 we ignore
+        self.stack_push_u16(self.pc);
+        let mut ps = self.ps.clone();
+        ps.break0 = true;
+        let data: u8 = (&ps).into();
+        self.stack_push(data);
+        self.pc = self.mem_read_u16(BRK_IRQ_BASE)
+    }
+
+    fn cmp(&mut self, mode: &AddressingMode, reference: u8) {
+        let addr = self.get_operand_address(mode);
+        let data = self.mem_read(addr);
+        if reference >= data {
+            self.ps.set(Carry, true)
+        }
+        self.update_zero_and_negative(reference.wrapping_sub(data))
+    }
+
+    fn dec(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let mut data = self.mem_read(addr);
+        data = data.wrapping_sub(1);
+        self.update_zero_and_negative(data);
+        self.mem_write(addr, data);
+    }
+
+    fn dex(&mut self) {
+        self.x = self.x.wrapping_sub(1);
+        self.update_zero_and_negative(self.x);
+    }
+
+    fn dey(&mut self) {
+        self.y = self.y.wrapping_sub(1);
+        self.update_zero_and_negative(self.y);
+    }
+
+    fn inc(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let mut data = self.mem_read(addr);
+        data = data.wrapping_add(1);
+        self.update_zero_and_negative(data);
+        self.mem_write(addr, data);
+    }
+
+    fn inx(&mut self) {
+        self.x = self.x.wrapping_add(1);
+        self.update_zero_and_negative(self.x);
+    }
+
+    fn iny(&mut self) {
+        self.y = self.y.wrapping_add(1);
+        self.update_zero_and_negative(self.y);
+    }
+
     pub fn run(&mut self) {
         let ref opcodes: HashMap<u8, &'static opcodes::OpCode> = *opcodes::OPCODES_MAP;
         loop {
@@ -428,7 +541,7 @@ impl Cpu {
                 .expect(&format!("OpCode {:x} is not supported", code));
 
             match code {
-                // BRK
+                // BRK : TODO
                 0x00 => return,
                 // LDA
                 0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
@@ -498,8 +611,6 @@ impl Cpu {
                 0x9A => self.txs(),
                 // TYA
                 0x98 => self.tya(),
-                // INX
-                0xE8 => self.inx(),
                 // NOP
                 0xEA => self.nop(),
                 // ADC
@@ -514,6 +625,51 @@ impl Cpu {
                 0x68 => self.pla(),
                 // PLP
                 0x28 => self.plp(),
+                // BCC
+                0x90 => self.branch(self.ps.carry == false),
+                // BCS
+                0xB0 => self.branch(self.ps.carry),
+                // BEQ
+                0xF0 => self.branch(self.ps.zero),
+                // BMI
+                0x30 => self.branch(self.ps.negative),
+                // BNE
+                0xD0 => self.branch(self.ps.zero == false),
+                // BPL
+                0x10 => self.branch(self.ps.negative == false),
+                // BVC
+                0x50 => self.branch(self.ps.overflow == false),
+                // BVS
+                0x70 => self.branch(self.ps.overflow),
+                // CMP
+                0xC9 | 0xC5 | 0xD5 | 0xCD | 0xDD | 0xD9 | 0xC1 | 0xD1 => {
+                    self.cmp(&opcode.mode, self.a)
+                }
+                // CPX
+                0xE0 | 0xE4 | 0xEC => self.cmp(&opcode.mode, self.x),
+                // CPY
+                0xC0 | 0xC4 | 0xCC => self.cmp(&opcode.mode, self.y),
+                // DEC
+                0xC6 | 0xD6 | 0xCE | 0xDE => self.dec(&opcode.mode),
+                // DEX
+                0xCA => self.dex(),
+                // DEY
+                0x88 => self.dey(),
+                // INC
+                0xE6 | 0xF6 | 0xEE | 0xFE => self.inc(&opcode.mode),
+                // INX
+                0xE8 => self.inx(),
+                // INY
+                0xC8 => self.iny(),
+                // JMP
+                0x4C => self.jmp_abs(),
+                0x6C => self.jmp_indirect(),
+                // JSR
+                0x20 => self.jsr(),
+                // RTI
+                0x40 => self.rti(),
+                // RTS
+                0x60 => self.rts(),
                 _ => todo!(),
             }
 

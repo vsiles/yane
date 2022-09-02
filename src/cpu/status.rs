@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Status {
     pub carry: bool,
     pub zero: bool,
