@@ -1,85 +1,32 @@
-pub struct Status {
-    pub carry: bool,
-    pub zero: bool,
-    pub interrupt: bool,
-    pub decimal: bool,
-    pub break_: bool,
-    pub overflow: bool,
-    pub negative: bool,
-}
+use std::collections::HashMap;
 
-pub enum StatusFlag {
-    Carry,
-    Zero,
-    Interrupt,
-    Decimal,
-    Break,
-    Overflow,
-    Negative,
-}
+mod status;
+use status::StatusFlag::*;
+use status::*;
 
-use StatusFlag::*;
-
-impl Status {
-    fn new() -> Self {
-        Status {
-            carry: false,
-            zero: false,
-            interrupt: false,
-            decimal: false,
-            break_: false,
-            overflow: false,
-            negative: false,
-        }
-    }
-
-    fn set(&mut self, flag: StatusFlag, val: bool) {
-        match flag {
-            StatusFlag::Carry => self.carry = val,
-            StatusFlag::Zero => self.zero = val,
-            StatusFlag::Interrupt => self.interrupt = val,
-            StatusFlag::Decimal => self.decimal = val,
-            StatusFlag::Break => self.break_ = val,
-            StatusFlag::Overflow => self.overflow = val,
-            StatusFlag::Negative => self.negative = val,
-        }
-    }
-}
-
-impl From<u8> for Status {
-    fn from(status: u8) -> Self {
-        let mut res = Status::new();
-        if (status & (1 << 0)) != 0 {
-            res.set(Carry, true)
-        }
-        if (status & (1 << 1)) != 0 {
-            res.set(Zero, true)
-        }
-        if (status & (1 << 2)) != 0 {
-            res.set(Interrupt, true)
-        }
-        if (status & (1 << 3)) != 0 {
-            res.set(Decimal, true)
-        }
-        if (status & (1 << 4)) != 0 {
-            res.set(Break, true)
-        }
-        if (status & (1 << 6)) != 0 {
-            res.set(Overflow, true)
-        }
-        if (status & (1 << 7)) != 0 {
-            res.set(Negative, true)
-        }
-        res
-    }
-}
+mod opcodes;
 
 pub struct Cpu {
     pub a: u8,
     pub x: u8,
+    pub y: u8,
     pub ps: Status,
     pub pc: u16,
     memory: [u8; 0xFFFF],
+}
+
+#[derive(Debug)]
+pub enum AddressingMode {
+    Immediate,
+    ZeroPage,
+    ZeroPageX,
+    ZeroPageY,
+    Absolute,
+    AbsoluteX,
+    AbsoluteY,
+    IndirectX,
+    IndirectY,
+    NoneAddressing,
 }
 
 impl Cpu {
@@ -87,20 +34,21 @@ impl Cpu {
         Cpu {
             a: 0,
             x: 0,
+            y: 0,
             ps: Status::new(),
             pc: 0,
             memory: [0; 0xFFFF],
         }
     }
 
+    // Memory related actions
     fn mem_read(&self, addr: u16) -> u8 {
         self.memory[addr as usize]
     }
 
     fn mem_read_u16(&self, pos: u16) -> u16 {
         let low = self.mem_read(pos) as u16;
-        // TODO: check if this +1 can oveflow
-        let high = self.mem_read(pos + 1) as u16;
+        let high = self.mem_read(pos.wrapping_add(1)) as u16;
         (high << 8) | (low as u16)
     }
 
@@ -112,13 +60,14 @@ impl Cpu {
         let high = (data >> 8) as u8;
         let low = (data & 0xff) as u8;
         self.mem_write(pos, low);
-        // TODO: check if this +1 can oveflow
-        self.mem_write(pos + 1, high);
+        self.mem_write(pos.wrapping_add(1), high);
     }
 
+    // Global actions & entry points
     pub fn reset(&mut self) {
         self.a = 0;
         self.x = 0;
+        self.y = 0;
         self.ps = Status::from(0);
 
         self.pc = self.mem_read_u16(0xFFFC);
@@ -135,15 +84,71 @@ impl Cpu {
         self.mem_write_u16(0xFFFC, 0x8000)
     }
 
+    // Addressing Modes
+    fn get_operand_address(&self, mode: &AddressingMode) -> u16 {
+        match mode {
+            AddressingMode::Immediate => self.pc,
+            AddressingMode::ZeroPage => self.mem_read(self.pc) as u16,
+            AddressingMode::Absolute => self.mem_read_u16(self.pc),
+            AddressingMode::ZeroPageX => {
+                let pos = self.mem_read(self.pc);
+                let addr = pos.wrapping_add(self.x) as u16;
+                addr
+            }
+            AddressingMode::ZeroPageY => {
+                let pos = self.mem_read(self.pc);
+                let addr = pos.wrapping_add(self.y) as u16;
+                addr
+            }
+            AddressingMode::AbsoluteX => {
+                let base = self.mem_read_u16(self.pc);
+                let addr = base.wrapping_add(self.x as u16);
+                addr
+            }
+            AddressingMode::AbsoluteY => {
+                let base = self.mem_read_u16(self.pc);
+                let addr = base.wrapping_add(self.y as u16);
+                addr
+            }
+            AddressingMode::IndirectX => {
+                let base = self.mem_read(self.pc);
+
+                let ptr: u8 = (base as u8).wrapping_add(self.x);
+                let low = self.mem_read(ptr as u16);
+                let high = self.mem_read(ptr.wrapping_add(1) as u16);
+                (high as u16) << 8 | (low as u16)
+            }
+            AddressingMode::IndirectY => {
+                let base = self.mem_read(self.pc);
+
+                let low = self.mem_read(base as u16);
+                let high = self.mem_read((base as u8).wrapping_add(1) as u16);
+                let deref_base = (high as u16) << 8 | (low as u16);
+                let deref = deref_base.wrapping_add(self.y as u16);
+                deref
+            }
+            AddressingMode::NoneAddressing => {
+                panic!("mode {:?} is not supported", mode);
+            }
+        }
+    }
+
+    // Instructions
     fn update_zero_and_negative(&mut self, result: u8) {
         self.ps.set(Zero, result == 0);
         self.ps.set(Negative, (result & (1 << 7)) != 0)
     }
 
-    fn lda(&mut self, value: u8) {
-        // Cycles 2
+    fn lda(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        let value = self.mem_read(addr);
         self.a = value;
         self.update_zero_and_negative(self.a);
+    }
+
+    fn sta(&mut self, mode: &AddressingMode) {
+        let addr = self.get_operand_address(mode);
+        self.mem_write(addr, self.a);
     }
 
     fn tax(&mut self) {
@@ -152,31 +157,42 @@ impl Cpu {
     }
 
     fn inx(&mut self) {
-        let (x, _) = self.x.overflowing_add(1);
-        self.x = x;
+        self.x = self.x.wrapping_add(1);
         self.update_zero_and_negative(self.x);
     }
 
     pub fn run(&mut self) {
+        let ref opcodes: HashMap<u8, &'static opcodes::OpCode> = *opcodes::OPCODES_MAP;
         loop {
-            let opcode = self.mem_read(self.pc);
+            let code = self.mem_read(self.pc);
             self.pc += 1;
 
-            match opcode {
+            let pc = self.pc;
+
+            let opcode = opcodes
+                .get(&code)
+                .expect(&format!("OpCode {:x} is not supported", code));
+
+            match code {
                 // BRK
                 0x00 => return,
                 // LDA
-                0xA9 => {
-                    // 2 Cycles
-                    let a = self.mem_read(self.pc);
-                    self.pc += 1;
-                    self.lda(a);
+                0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
+                    self.lda(&opcode.mode);
+                }
+                // STA
+                0x85 | 0x95 | 0x8D | 0x9D | 0x99 | 0x81 | 0x91 => {
+                    self.sta(&opcode.mode);
                 }
                 // TAX : 2 Cycles
                 0xAA => self.tax(),
                 // INX : 2 Cycles
                 0xE8 => self.inx(),
                 _ => todo!(),
+            }
+
+            if pc == self.pc {
+                self.pc += (opcode.len - 1) as u16;
             }
         }
     }
@@ -193,6 +209,15 @@ mod test {
         assert_eq!(cpu.a, 0x05);
         assert!(cpu.ps.zero == false);
         assert!(cpu.ps.negative == false);
+    }
+
+    #[test]
+    fn test_lda_from_memory() {
+        let mut cpu = Cpu::new();
+        cpu.mem_write(0x10, 0x55);
+
+        cpu.load_and_run(vec![0xa5, 0x10, 0x00]);
+        assert_eq!(cpu.a, 0x55);
     }
 
     #[test]
