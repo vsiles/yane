@@ -99,23 +99,23 @@ impl Cpu {
             AddressingMode::Absolute => self.mem_read_u16(self.pc),
             AddressingMode::ZeroPageX => {
                 let pos = self.mem_read(self.pc);
-                let addr = pos.wrapping_add(self.x) as u16;
-                addr
+
+                pos.wrapping_add(self.x) as u16
             }
             AddressingMode::ZeroPageY => {
                 let pos = self.mem_read(self.pc);
-                let addr = pos.wrapping_add(self.y) as u16;
-                addr
+
+                pos.wrapping_add(self.y) as u16
             }
             AddressingMode::AbsoluteX => {
                 let base = self.mem_read_u16(self.pc);
-                let addr = base.wrapping_add(self.x as u16);
-                addr
+
+                base.wrapping_add(self.x as u16)
             }
             AddressingMode::AbsoluteY => {
                 let base = self.mem_read_u16(self.pc);
-                let addr = base.wrapping_add(self.y as u16);
-                addr
+
+                base.wrapping_add(self.y as u16)
             }
             AddressingMode::IndirectX => {
                 let base = self.mem_read(self.pc);
@@ -131,8 +131,8 @@ impl Cpu {
                 let low = self.mem_read(base as u16);
                 let high = self.mem_read((base as u8).wrapping_add(1) as u16);
                 let deref_base = (high as u16) << 8 | (low as u16);
-                let deref = deref_base.wrapping_add(self.y as u16);
-                deref
+
+                deref_base.wrapping_add(self.y as u16)
             }
             AddressingMode::NoneAddressing => {
                 panic!("mode {:?} is not supported", mode);
@@ -396,7 +396,7 @@ impl Cpu {
         let sps = &self.ps;
         //http://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior
         let mut ps: u8 = sps.into();
-        ps |= (0x3 << 4);
+        ps |= 0x3 << 4;
         self.stack_push(ps)
     }
 
@@ -699,8 +699,8 @@ mod test {
         let mut cpu = Cpu::new();
         cpu.load_and_run(vec![0xa9, 0x05, 0x00]);
         assert_eq!(cpu.a, 0x05);
-        assert!(cpu.ps.zero == false);
-        assert!(cpu.ps.negative == false);
+        assert!(!cpu.ps.zero);
+        assert!(!cpu.ps.negative);
     }
 
     #[test]
@@ -717,8 +717,8 @@ mod test {
         let mut cpu = Cpu::new();
         cpu.load_and_run(vec![0xa9, 0x00, 0x00]);
         assert_eq!(cpu.a, 0x00);
-        assert!(cpu.ps.zero == true);
-        assert!(cpu.ps.negative == false);
+        assert!(cpu.ps.zero);
+        assert!(!cpu.ps.negative);
     }
 
     #[test]
@@ -726,8 +726,8 @@ mod test {
         let mut cpu = Cpu::new();
         cpu.load_and_run(vec![0xa9, 0xf0, 0x00]);
         assert_eq!(cpu.a, 0xf0);
-        assert!(cpu.ps.zero == false);
-        assert!(cpu.ps.negative == true);
+        assert!(!cpu.ps.zero);
+        assert!(cpu.ps.negative);
     }
 
     #[test]
@@ -736,8 +736,8 @@ mod test {
         cpu.load_and_run(vec![0xa9, 0x0b, 0xaa, 0x00]);
         assert_eq!(cpu.a, 0x0b);
         assert_eq!(cpu.x, 0x0b);
-        assert!(cpu.ps.zero == false);
-        assert!(cpu.ps.negative == false);
+        assert!(!cpu.ps.zero);
+        assert!(!cpu.ps.negative);
     }
 
     #[test]
@@ -746,8 +746,8 @@ mod test {
         cpu.x = 0x0b;
         cpu.load_and_run(vec![0xaa, 0x00]);
         assert_eq!(cpu.x, 0x00);
-        assert!(cpu.ps.zero == true);
-        assert!(cpu.ps.negative == false);
+        assert!(cpu.ps.zero);
+        assert!(!cpu.ps.negative);
     }
 
     #[test]
@@ -755,8 +755,8 @@ mod test {
         let mut cpu = Cpu::new();
         cpu.load_and_run(vec![0xa9, 0xf0, 0xaa, 0x00]);
         assert_eq!(cpu.x, 0xf0);
-        assert!(cpu.ps.zero == false);
-        assert!(cpu.ps.negative == true);
+        assert!(!cpu.ps.zero);
+        assert!(cpu.ps.negative);
     }
 
     #[test]
@@ -764,8 +764,8 @@ mod test {
         let mut cpu = Cpu::new();
         cpu.load_and_run(vec![0xa9, 0x0a, 0xaa, 0xe8, 0x00]);
         assert_eq!(cpu.x, 0x0b);
-        assert!(cpu.ps.zero == false);
-        assert!(cpu.ps.negative == false);
+        assert!(!cpu.ps.zero);
+        assert!(!cpu.ps.negative);
     }
 
     #[test]
@@ -773,8 +773,8 @@ mod test {
         let mut cpu = Cpu::new();
         cpu.load_and_run(vec![0xa9, 0xff, 0xaa, 0xe8, 0x00]);
         assert_eq!(cpu.x, 0x00);
-        assert!(cpu.ps.zero == true);
-        assert!(cpu.ps.negative == false);
+        assert!(cpu.ps.zero);
+        assert!(!cpu.ps.negative);
     }
 
     #[test]
@@ -782,8 +782,8 @@ mod test {
         let mut cpu = Cpu::new();
         cpu.load_and_run(vec![0xa9, 0xf0, 0xaa, 0xe8, 0x00]);
         assert_eq!(cpu.x, 0xf1);
-        assert!(cpu.ps.zero == false);
-        assert!(cpu.ps.negative == true);
+        assert!(!cpu.ps.zero);
+        assert!(cpu.ps.negative);
     }
 
     #[test]

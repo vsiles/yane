@@ -35,5 +35,5 @@ fn main() {
     cpu.load(SNAKE.to_vec());
     cpu.reset();
 
-    cpu.run_with_callback(move |cpu| {})
+    cpu.run_with_callback(move |_cpu| {})
 }

@@ -62,28 +62,28 @@ impl From<&Status> for u8 {
     fn from(s: &Status) -> Self {
         let mut res = 0;
         if s.carry {
-            res |= (1 << 0);
+            res |= 1 << 0;
         }
         if s.zero {
-            res |= (1 << 1);
+            res |= 1 << 1;
         }
         if s.interrupt {
-            res |= (1 << 2);
+            res |= 1 << 2;
         }
         if s.decimal {
-            res |= (1 << 3);
+            res |= 1 << 3;
         }
         if s.break0 {
-            res |= (1 << 4);
+            res |= 1 << 4;
         }
         if s.break1 {
-            res |= (1 << 5);
+            res |= 1 << 5;
         }
         if s.overflow {
-            res |= (1 << 6);
+            res |= 1 << 6;
         }
         if s.negative {
-            res |= (1 << 7);
+            res |= 1 << 7;
         }
         res
     }
