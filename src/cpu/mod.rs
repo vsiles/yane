@@ -227,7 +227,7 @@ impl Cpu {
         self.a = self.a ^ value;
         self.update_zero_and_negative(self.a);
     }
-    
+
     fn ora(&mut self, mode: &AddressingMode) {
         let addr = self.get_operand_address(mode);
         let value = self.mem_read(addr);
@@ -276,7 +276,7 @@ impl Cpu {
     fn rol_a(&mut self) {
         let mut data = self.a;
         let bit7 = (data >> 7) & 0x1;
-        let carry  = if self.ps.carry { 1 } else { 0 };
+        let carry = if self.ps.carry { 1 } else { 0 };
         self.ps.set(Carry, bit7 != 0);
         data = (data << 1) | (carry as u8);
         self.a = data;
@@ -287,7 +287,7 @@ impl Cpu {
         let addr = self.get_operand_address(mode);
         let mut data = self.mem_read(addr);
         let bit7 = (data >> 7) & 0x1;
-        let carry  = if self.ps.carry { 1 } else { 0 };
+        let carry = if self.ps.carry { 1 } else { 0 };
         self.ps.set(Carry, bit7 != 0);
         data = (data << 1) | (carry as u8);
         self.mem_write(addr, data);
@@ -297,7 +297,7 @@ impl Cpu {
     fn ror_a(&mut self) {
         let mut data = self.a;
         let bit0 = data & 0x1;
-        let carry  = if self.ps.carry { 1 } else { 0 };
+        let carry = if self.ps.carry { 1 } else { 0 };
         let carry = (carry as u8) << 7;
         self.ps.set(Carry, bit0 != 0);
         data = (data >> 1) | carry;
@@ -309,7 +309,7 @@ impl Cpu {
         let addr = self.get_operand_address(mode);
         let mut data = self.mem_read(addr);
         let bit0 = data & 0x1;
-        let carry  = if self.ps.carry { 1 } else { 0 };
+        let carry = if self.ps.carry { 1 } else { 0 };
         let carry = (carry as u8) << 7;
         self.ps.set(Carry, bit0 != 0);
         data = (data >> 1) | carry;
@@ -339,20 +339,14 @@ impl Cpu {
     // Ignoring decimal mode
     /// http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
     fn add_to_a(&mut self, data: u8) {
-        let sum = self.a as u16
-            + data as u16
-            + (if self.ps.carry {
-                1
-            } else {
-                0
-            }) as u16;
+        let sum = self.a as u16 + data as u16 + (if self.ps.carry { 1 } else { 0 }) as u16;
 
         let carry = sum > 0xff;
         self.ps.set(Carry, carry);
 
         let result = sum as u8;
 
-        let overflow : bool = (data ^ result) & (result ^ self.a) & 0x80 != 0;
+        let overflow: bool = (data ^ result) & (result ^ self.a) & 0x80 != 0;
         self.ps.set(Overflow, overflow);
 
         self.a = result;
@@ -370,6 +364,55 @@ impl Cpu {
         let addr = self.get_operand_address(mode);
         let value = self.mem_read(addr);
         self.add_to_a(value);
+    }
+
+    // Stack ops
+    fn stack_pop(&mut self) -> u8 {
+        self.sp = self.sp.wrapping_add(1);
+        self.mem_read((STACK as u16) + self.sp as u16)
+    }
+
+    fn stack_push(&mut self, data: u8) {
+        self.mem_write((STACK as u16) + self.sp as u16, data);
+        self.sp = self.sp.wrapping_sub(1)
+    }
+
+    fn stack_push_u16(&mut self, data: u16) {
+        let high = ((data >> 8) & 0xFF) as u8;
+        let low = (data & 0xff) as u8;
+        self.stack_push(high);
+        self.stack_push(low);
+    }
+
+    fn stack_pop_u16(&mut self) -> u16 {
+        let low = self.stack_pop() as u16;
+        let high = self.stack_pop() as u16;
+
+        high << 8 | low
+    }
+
+    fn pha(&mut self) {
+        self.stack_push(self.a)
+    }
+
+    fn php(&mut self) {
+        let sps = &self.ps;
+        //http://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior
+        let mut ps: u8 = sps.into();
+        ps = ps | (0x3 << 4);
+        self.stack_push(ps)
+    }
+
+    fn pla(&mut self) {
+        self.a = self.stack_pop();
+        self.update_zero_and_negative(self.a);
+    }
+
+    fn plp(&mut self) {
+        let data = self.stack_pop();
+        self.ps = data.into();
+        self.ps.break0 = false;
+        self.ps.break1 = true;
     }
 
     pub fn run(&mut self) {
@@ -430,13 +473,13 @@ impl Cpu {
                 // BIT
                 0x24 | 0x2C => self.bit(&opcode.mode),
                 // CLC
-                0x18 => self.set_flag(Carry, false), 
+                0x18 => self.set_flag(Carry, false),
                 // CLD
-                0xD8 => self.set_flag(Decimal, false), 
+                0xD8 => self.set_flag(Decimal, false),
                 // CLI
-                0x58 => self.set_flag(Interrupt, false), 
+                0x58 => self.set_flag(Interrupt, false),
                 // CLV
-                0xB8 => self.set_flag(Overflow, false), 
+                0xB8 => self.set_flag(Overflow, false),
                 // SEC
                 0x38 => self.set_flag(Carry, true),
                 // SED
@@ -460,13 +503,17 @@ impl Cpu {
                 // NOP
                 0xEA => self.nop(),
                 // ADC
-                0x69 | 0x65 | 0x75 | 0x6D | 0x7D | 0x79 | 0x61 | 0x71 => {
-                    self.adc(&opcode.mode)
-                }
+                0x69 | 0x65 | 0x75 | 0x6D | 0x7D | 0x79 | 0x61 | 0x71 => self.adc(&opcode.mode),
                 // SBC
-                0xE9 | 0xE5 | 0xF5 | 0xED | 0xFD | 0xF9 | 0xE1 | 0xF1 => {
-                    self.sbc(&opcode.mode)
-                }
+                0xE9 | 0xE5 | 0xF5 | 0xED | 0xFD | 0xF9 | 0xE1 | 0xF1 => self.sbc(&opcode.mode),
+                // PHA
+                0x48 => self.pha(),
+                // PHP
+                0x08 => self.php(),
+                // PLA
+                0x68 => self.pla(),
+                // PLP
+                0x28 => self.plp(),
                 _ => todo!(),
             }
 

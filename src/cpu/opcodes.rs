@@ -152,6 +152,11 @@ lazy_static! {
         OpCode::new(0xF9, "SBC", 3, 4/*+1 if page crossed*/, AddressingMode::AbsoluteY),
         OpCode::new(0xE1, "SBC", 2, 6, AddressingMode::IndirectX),
         OpCode::new(0xF1, "SBC", 2, 5/*+1 if page crossed*/, AddressingMode::IndirectY),
+
+        OpCode::new(0x48, "PHA", 1, 3, AddressingMode::NoneAddressing),
+        OpCode::new(0x08, "PHP", 1, 3, AddressingMode::NoneAddressing),
+        OpCode::new(0x68, "PLA", 1, 4, AddressingMode::NoneAddressing),
+        OpCode::new(0x28, "PLP", 1, 4, AddressingMode::NoneAddressing),
     ];
 
 
