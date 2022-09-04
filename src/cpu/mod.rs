@@ -12,6 +12,8 @@ use cartridge::Rom;
 mod bus;
 use bus::*;
 
+pub mod trace;
+
 const STACK: u16 = 0x0100;
 const STACK_RESET: u8 = 0xfd;
 const BRK_IRQ_BASE: u16 = 0xFFFE;
@@ -86,39 +88,35 @@ impl Cpu {
         self.a = 0;
         self.x = 0;
         self.y = 0;
-        self.ps = Status::from(0);
+        self.ps = Status::new();
+        self.sp = STACK_RESET;
 
         self.pc = self.mem_read_u16(0xFFFC);
     }
 
     // Addressing Modes
-    fn get_operand_address(&self, mode: &AddressingMode) -> u16 {
+    fn get_absolute_address(&self, mode: &AddressingMode, addr: u16) -> u16 {
         match mode {
-            AddressingMode::Immediate => self.pc,
-            AddressingMode::ZeroPage => self.mem_read(self.pc) as u16,
-            AddressingMode::Absolute => self.mem_read_u16(self.pc),
+            AddressingMode::ZeroPage => self.mem_read(addr) as u16,
+            AddressingMode::Absolute => self.mem_read_u16(addr),
             AddressingMode::ZeroPageX => {
-                let pos = self.mem_read(self.pc);
-
+                let pos = self.mem_read(addr);
                 pos.wrapping_add(self.x) as u16
             }
             AddressingMode::ZeroPageY => {
-                let pos = self.mem_read(self.pc);
-
+                let pos = self.mem_read(addr);
                 pos.wrapping_add(self.y) as u16
             }
             AddressingMode::AbsoluteX => {
-                let base = self.mem_read_u16(self.pc);
-
+                let base = self.mem_read_u16(addr);
                 base.wrapping_add(self.x as u16)
             }
             AddressingMode::AbsoluteY => {
-                let base = self.mem_read_u16(self.pc);
-
+                let base = self.mem_read_u16(addr);
                 base.wrapping_add(self.y as u16)
             }
             AddressingMode::IndirectX => {
-                let base = self.mem_read(self.pc);
+                let base = self.mem_read(addr);
 
                 let ptr: u8 = (base as u8).wrapping_add(self.x);
                 let low = self.mem_read(ptr as u16);
@@ -126,7 +124,7 @@ impl Cpu {
                 (high as u16) << 8 | (low as u16)
             }
             AddressingMode::IndirectY => {
-                let base = self.mem_read(self.pc);
+                let base = self.mem_read(addr);
 
                 let low = self.mem_read(base as u16);
                 let high = self.mem_read((base as u8).wrapping_add(1) as u16);
@@ -134,9 +132,16 @@ impl Cpu {
 
                 deref_base.wrapping_add(self.y as u16)
             }
-            AddressingMode::NoneAddressing => {
+            AddressingMode::Immediate | AddressingMode::NoneAddressing => {
                 panic!("mode {:?} is not supported", mode);
             }
+        }
+    }
+
+    fn get_operand_address(&self, mode: &AddressingMode) -> u16 {
+        match mode {
+            AddressingMode::Immediate => self.pc,
+            _ => self.get_absolute_address(mode, self.pc),
         }
     }
 
@@ -487,9 +492,7 @@ impl Cpu {
     fn cmp(&mut self, mode: &AddressingMode, reference: u8) {
         let addr = self.get_operand_address(mode);
         let data = self.mem_read(addr);
-        if reference >= data {
-            self.ps.set(Carry, true)
-        }
+        self.ps.set(Carry, reference >= data);
         self.update_zero_and_negative(reference.wrapping_sub(data))
     }
 

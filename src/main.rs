@@ -97,7 +97,8 @@ fn main() {
         .unwrap();
 
     // TODO: Do CLI to pass in rom name
-    let rom_path = "snake.nes";
+    // let rom_path = "snake.nes";
+    let rom_path = "nestest.nes";
     let rom_name = std::path::Path::new(rom_path);
     let rom_data =
         std::fs::read(rom_name).unwrap_or_else(|_| panic!("failure to load file:  {}", rom_path));
@@ -109,10 +110,14 @@ fn main() {
     // Load game
     let mut cpu = Cpu::new(rom);
     cpu.reset();
+    cpu.pc = 0xC000;
 
     let mut screen_state = [0_u8; 32 * 3 * 32];
     let mut rng = rand::thread_rng();
 
+    // TODO CLI
+    // SDL
+    /*
     cpu.run_with_callback(move |cpu| {
         handle_user_input(cpu, &mut event_pump);
         cpu.mem_write(0xfe, rng.gen_range(1, 16));
@@ -124,5 +129,10 @@ fn main() {
         }
         // ::std::thread::sleep(std::time::Duration::new(0, 70_000));
         spin_sleep::sleep(std::time::Duration::new(0, 70_000));
+    });
+    */
+    // TRACE
+    cpu.run_with_callback(move |cpu| {
+        println!("{}", cpu::trace::trace(cpu));
     });
 }
