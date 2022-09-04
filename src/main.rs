@@ -77,7 +77,7 @@ fn handle_user_input(cpu: &mut Cpu, event_pump: &mut EventPump) {
 
 fn color(byte: u8) -> Color {
     match byte {
-        0 => sdl2::pixels::Color::RGB(0,0,0),
+        0 => sdl2::pixels::Color::RGB(0, 0, 0),
         1 => sdl2::pixels::Color::RGB(255, 255, 255),
         2 | 9 => sdl2::pixels::Color::RGB(128, 128, 128),
         3 | 10 => sdl2::pixels::Color::RGB(255, 0, 0),
@@ -125,12 +125,21 @@ fn main() {
         .create_texture_target(PixelFormatEnum::RGB24, 32, 32)
         .unwrap();
 
+    // TODO: Do CLI to pass in rom name
+    let rom_path = "snake.nes";
+    let rom_name = std::path::Path::new(rom_path);
+    let rom_data =
+        std::fs::read(rom_name).unwrap_or_else(|_| panic!("failure to load file:  {}", rom_path));
+    let rom = match cpu::cartridge::Rom::new(&rom_data) {
+        Ok(rom) => rom,
+        Err(msg) => panic!("{}", msg),
+    };
+
     // Load game
-    let mut cpu = Cpu::new();
-    cpu.load(SNAKE.to_vec());
+    let mut cpu = Cpu::new(rom);
     cpu.reset();
 
-    let mut screen_state = [0 as u8; 32 * 3 * 32];
+    let mut screen_state = [0_u8; 32 * 3 * 32];
     let mut rng = rand::thread_rng();
 
     cpu.run_with_callback(move |cpu| {

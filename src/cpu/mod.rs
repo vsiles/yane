@@ -6,6 +6,12 @@ use status::*;
 
 mod opcodes;
 
+pub mod cartridge;
+use cartridge::Rom;
+
+mod bus;
+use bus::*;
+
 const STACK: u16 = 0x0100;
 const STACK_RESET: u8 = 0xfd;
 const BRK_IRQ_BASE: u16 = 0xFFFE;
@@ -17,7 +23,7 @@ pub struct Cpu {
     pub ps: Status,
     pub pc: u16,
     pub sp: u8,
-    memory: [u8; 0xFFFF],
+    pub bus: Bus,
 }
 
 #[derive(Debug)]
@@ -34,23 +40,10 @@ pub enum AddressingMode {
     NoneAddressing,
 }
 
-impl Cpu {
-    pub fn new() -> Self {
-        Cpu {
-            a: 0,
-            x: 0,
-            y: 0,
-            ps: Status::new(),
-            pc: 0,
-            sp: STACK_RESET,
-            memory: [0; 0xFFFF],
-        }
-    }
+pub trait Mem {
+    fn mem_read(&self, addr: u16) -> u8;
 
-    // Memory related actions
-    pub fn mem_read(&self, addr: u16) -> u8 {
-        self.memory[addr as usize]
-    }
+    fn mem_write(&mut self, addr: u16, data: u8);
 
     fn mem_read_u16(&self, pos: u16) -> u16 {
         let low = self.mem_read(pos) as u16;
@@ -58,15 +51,34 @@ impl Cpu {
         (high << 8) | (low as u16)
     }
 
-    pub fn mem_write(&mut self, addr: u16, data: u8) {
-        self.memory[addr as usize] = data
-    }
-
     fn mem_write_u16(&mut self, pos: u16, data: u16) {
         let high = (data >> 8) as u8;
         let low = (data & 0xff) as u8;
         self.mem_write(pos, low);
         self.mem_write(pos + 1, high);
+    }
+}
+impl Mem for Cpu {
+    fn mem_read(&self, addr: u16) -> u8 {
+        self.bus.mem_read(addr)
+    }
+
+    fn mem_write(&mut self, addr: u16, data: u8) {
+        self.bus.mem_write(addr, data)
+    }
+}
+
+impl Cpu {
+    pub fn new(rom: Rom) -> Self {
+        Cpu {
+            a: 0,
+            x: 0,
+            y: 0,
+            ps: Status::new(),
+            pc: 0,
+            sp: STACK_RESET,
+            bus: Bus::new(rom),
+        }
     }
 
     // Global actions & entry points
@@ -77,20 +89,6 @@ impl Cpu {
         self.ps = Status::from(0);
 
         self.pc = self.mem_read_u16(0xFFFC);
-    }
-
-    #[allow(dead_code)]
-    pub fn load_and_run(&mut self, program: Vec<u8>) {
-        self.load(program);
-        self.reset();
-        self.run()
-    }
-
-    pub fn load(&mut self, program: Vec<u8>) {
-        // self.memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program[..]);
-        self.memory[0x600..(0x600 + program.len())].copy_from_slice(&program[..]);
-        // self.mem_write_u16(0xFFFC, 0x8000)
-        self.mem_write_u16(0xFFFC, 0x600)
     }
 
     // Addressing Modes
@@ -691,118 +689,5 @@ impl Cpu {
                 self.pc += (opcode.len - 1) as u16;
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_0xa9_lda_imm() {
-        let mut cpu = Cpu::new();
-        cpu.load_and_run(vec![0xa9, 0x05, 0x00]);
-        assert_eq!(cpu.a, 0x05);
-        assert!(!cpu.ps.zero);
-        assert!(!cpu.ps.negative);
-    }
-
-    #[test]
-    fn test_lda_from_memory() {
-        let mut cpu = Cpu::new();
-        cpu.mem_write(0x10, 0x55);
-
-        cpu.load_and_run(vec![0xa5, 0x10, 0x00]);
-        assert_eq!(cpu.a, 0x55);
-    }
-
-    #[test]
-    fn test_0xa9_lda_zero_flag() {
-        let mut cpu = Cpu::new();
-        cpu.load_and_run(vec![0xa9, 0x00, 0x00]);
-        assert_eq!(cpu.a, 0x00);
-        assert!(cpu.ps.zero);
-        assert!(!cpu.ps.negative);
-    }
-
-    #[test]
-    fn test_0xa9_lda_neg_flag() {
-        let mut cpu = Cpu::new();
-        cpu.load_and_run(vec![0xa9, 0xf0, 0x00]);
-        assert_eq!(cpu.a, 0xf0);
-        assert!(!cpu.ps.zero);
-        assert!(cpu.ps.negative);
-    }
-
-    #[test]
-    fn test_0xaa_tax() {
-        let mut cpu = Cpu::new();
-        cpu.load_and_run(vec![0xa9, 0x0b, 0xaa, 0x00]);
-        assert_eq!(cpu.a, 0x0b);
-        assert_eq!(cpu.x, 0x0b);
-        assert!(!cpu.ps.zero);
-        assert!(!cpu.ps.negative);
-    }
-
-    #[test]
-    fn test_0xaa_tax_zero_flag() {
-        let mut cpu = Cpu::new();
-        cpu.x = 0x0b;
-        cpu.load_and_run(vec![0xaa, 0x00]);
-        assert_eq!(cpu.x, 0x00);
-        assert!(cpu.ps.zero);
-        assert!(!cpu.ps.negative);
-    }
-
-    #[test]
-    fn test_0xaa_tax_negative_flag() {
-        let mut cpu = Cpu::new();
-        cpu.load_and_run(vec![0xa9, 0xf0, 0xaa, 0x00]);
-        assert_eq!(cpu.x, 0xf0);
-        assert!(!cpu.ps.zero);
-        assert!(cpu.ps.negative);
-    }
-
-    #[test]
-    fn test_0xe8_inx() {
-        let mut cpu = Cpu::new();
-        cpu.load_and_run(vec![0xa9, 0x0a, 0xaa, 0xe8, 0x00]);
-        assert_eq!(cpu.x, 0x0b);
-        assert!(!cpu.ps.zero);
-        assert!(!cpu.ps.negative);
-    }
-
-    #[test]
-    fn test_0xe8_inx_zero_flag() {
-        let mut cpu = Cpu::new();
-        cpu.load_and_run(vec![0xa9, 0xff, 0xaa, 0xe8, 0x00]);
-        assert_eq!(cpu.x, 0x00);
-        assert!(cpu.ps.zero);
-        assert!(!cpu.ps.negative);
-    }
-
-    #[test]
-    fn test_0xe8_inx_negative_flag() {
-        let mut cpu = Cpu::new();
-        cpu.load_and_run(vec![0xa9, 0xf0, 0xaa, 0xe8, 0x00]);
-        assert_eq!(cpu.x, 0xf1);
-        assert!(!cpu.ps.zero);
-        assert!(cpu.ps.negative);
-    }
-
-    #[test]
-    fn test_5_ops_working_together() {
-        let mut cpu = Cpu::new();
-        cpu.load_and_run(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
-
-        assert_eq!(cpu.x, 0xc1)
-    }
-
-    #[test]
-    fn test_inx_overflow() {
-        let mut cpu = Cpu::new();
-        cpu.load_and_run(vec![0xa9, 0xff, 0xaa, 0xe8, 0xe8, 0x00]);
-
-        assert_eq!(cpu.x, 1)
     }
 }
