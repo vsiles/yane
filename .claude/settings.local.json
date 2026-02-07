@@ -4,7 +4,10 @@
       "WebFetch(domain:www.nesdev.org)",
       "Bash(mkdir:*)",
       "Bash(xxd:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(cargo build:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo clippy:*)"
     ],
     "deny": [],
     "ask": []

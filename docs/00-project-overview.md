@@ -119,11 +119,15 @@ yane/
 
 ## Success Criteria
 
-### Milestone 1: Basic CPU
-- [ ] All registers implemented
-- [ ] Memory bus working
-- [ ] Simple instructions execute
-- [ ] Can load and run a basic ROM
+### Milestone 1: Basic CPU ✅ **PHASE 1 COMPLETE**
+- [x] All registers implemented
+- [x] Status flags with proper trait implementations
+- [x] Power-up and reset behavior
+- [x] 17 tests passing (10 unit + 7 integration)
+- [x] Zero warnings (clippy --all-targets)
+- [ ] Memory bus working (Phase 2)
+- [ ] Simple instructions execute (Phase 3+)
+- [ ] Can load and run a basic ROM (Phase 9+)
 
 ### Milestone 2: Complete CPU
 - [ ] All official opcodes implemented
@@ -142,9 +146,22 @@ yane/
 
 ## Next Steps
 
-1. Read CPU implementation guide (01-cpu-implementation.md)
-2. Study opcode reference (02-cpu-opcodes.md)
-3. Review hardware quirks (03-hardware-quirks.md)
-4. Set up project structure in Rust
-5. Implement basic CPU skeleton
-6. Begin opcode implementation with tests
+### ✅ Completed
+1. ~~Read CPU implementation guide (01-cpu-implementation.md)~~
+2. ~~Set up project structure in Rust~~
+3. ~~Implement basic CPU skeleton~~ **PHASE 1 COMPLETE**
+   - CPU registers and StatusFlags implemented
+   - Trait implementations (From<u8>, etc.)
+   - Comprehensive tests (17 passing)
+
+### 🔄 Current: Phase 2
+4. **Implement Memory Bus** (see 05-implementation-roadmap.md Phase 2)
+   - Create `src/bus.rs`
+   - 2KB RAM with mirroring
+   - ROM space mapping
+   - CPU read/write methods
+
+### 📋 Upcoming
+5. Study opcode reference (02-cpu-opcodes.md)
+6. Review hardware quirks (03-hardware-quirks.md)
+7. Begin opcode implementation with tests (Phase 3+)

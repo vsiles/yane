@@ -142,28 +142,33 @@ let prg_rom = &rom_data[16..16+16384]; // 16KB
 
 ## Milestone Checklist
 
-### Week 1: Basic CPU
-- [ ] CPU struct and registers
-- [ ] Status flags (conversion to/from byte)
+### ✅ Phase 1 Complete: CPU Registers & Status Flags
+- [x] CPU struct and registers
+- [x] Status flags (From trait implementations)
+- [x] Power-up and reset behavior
+- [x] 17 tests passing (10 unit + 7 integration)
+- [x] Zero warnings (clippy --all-targets)
+
+### Week 2: Memory Bus & Basic Instructions
 - [ ] Memory bus (read/write with mirroring)
 - [ ] LDA immediate
 - [ ] First nestest line matches!
 
-### Week 2: Load/Store Complete
+### Week 3: Load/Store Complete
 - [ ] All addressing modes
 - [ ] All load/store opcodes
 - [ ] Transfer instructions
 - [ ] Stack operations
 - [ ] First 100 nestest lines match
 
-### Week 3: Arithmetic & Control Flow
+### Week 4: Arithmetic & Control Flow
 - [ ] ADC, SBC (no decimal mode!)
 - [ ] AND, ORA, EOR
 - [ ] Branches (timing correct)
 - [ ] JMP, JSR, RTS
 - [ ] First 1000 nestest lines match
 
-### Week 4: Complete CPU
+### Week 5: Complete CPU
 - [ ] All official opcodes
 - [ ] Unofficial opcodes
 - [ ] Interrupts (BRK, NMI, IRQ, RTI)
